@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   遊戲報名排隊系統 — Design System
+   莉刻報名系統 — Design System
    ═══════════════════════════════════════════════════════════════════ */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
@@ -61,7 +61,9 @@
 }
 
 /* ─── Reset & Base ──────────────────────────────────────────────── */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -103,7 +105,7 @@ body.has-bg-image::before {
   pointer-events: none;
 }
 
-body.has-bg-image > * {
+body.has-bg-image>* {
   position: relative;
   z-index: 1;
 }
@@ -188,7 +190,7 @@ body.has-bg-image > * {
   box-shadow: var(--shadow-md), var(--shadow-glow);
 }
 
-.card + .card {
+.card+.card {
   margin-top: 20px;
 }
 
@@ -309,6 +311,13 @@ select.form-input {
   background-repeat: no-repeat;
   background-position: right 12px center;
   padding-right: 36px;
+  background-color: var(--bg-secondary);
+}
+
+select.form-input option {
+  background: #1a1a3e;
+  color: #e8e8f0;
+  padding: 8px;
 }
 
 /* ─── Buttons ───────────────────────────────────────────────────── */
@@ -441,8 +450,17 @@ select.form-input {
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.6; transform: scale(0.85); }
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.6;
+    transform: scale(0.85);
+  }
 }
 
 .status-text {
@@ -489,9 +507,19 @@ select.form-input {
 }
 
 @keyframes bounceIn {
-  0% { transform: scale(0); opacity: 0; }
-  50% { transform: scale(1.15); }
-  100% { transform: scale(1); opacity: 1; }
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+
+  50% {
+    transform: scale(1.15);
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .success-card h3 {
@@ -600,8 +628,15 @@ select.form-input {
 }
 
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .chat-msg .chat-meta {
@@ -744,6 +779,7 @@ select.form-input {
 .status-select {
   padding: 4px 8px;
   background: var(--bg-glass);
+  background-color: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: 6px;
   color: var(--text-primary);
@@ -752,6 +788,11 @@ select.form-input {
   cursor: pointer;
   outline: none;
   transition: all var(--transition-fast);
+}
+
+.status-select option {
+  background: #1a1a3e;
+  color: #e8e8f0;
 }
 
 .status-select:focus {
@@ -783,13 +824,27 @@ select.form-input {
 }
 
 @keyframes slideInRight {
-  from { transform: translateX(120%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+  from {
+    transform: translateX(120%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 @keyframes slideOutRight {
-  from { transform: translateX(0); opacity: 1; }
-  to { transform: translateX(120%); opacity: 0; }
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+
+  to {
+    transform: translateX(120%);
+    opacity: 0;
+  }
 }
 
 .toast.hiding {
@@ -840,7 +895,9 @@ select.form-input {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ─── Login Screen ───────────────────────────────────────────────── */
@@ -961,8 +1018,13 @@ select.form-input {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 /* ─── Copy URL Bar ───────────────────────────────────────────────── */
@@ -1009,7 +1071,7 @@ select.form-input {
   .admin-layout {
     grid-template-columns: 1fr;
   }
-  
+
   .admin-sidebar {
     position: static;
   }
@@ -1020,11 +1082,11 @@ select.form-input {
     padding: 16px;
     padding-top: 24px;
   }
-  
+
   .card {
     padding: 20px;
   }
-  
+
   .header h1 {
     font-size: 1.6rem;
   }
@@ -1032,11 +1094,11 @@ select.form-input {
   .config-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .btn-group {
     flex-direction: column;
   }
-  
+
   .btn-group .btn {
     width: 100%;
   }

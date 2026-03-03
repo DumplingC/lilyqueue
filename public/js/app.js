@@ -111,7 +111,7 @@
         if (data.active) {
             statusDot.className = 'status-dot online';
             statusText.textContent = '報名中';
-            sessionTitle.textContent = data.title || '遊戲報名排隊';
+            sessionTitle.textContent = data.title || '莉刻報名';
             slotCounter.innerHTML = `已報名 <strong>${data.currentCount || 0}</strong> / 正選 ${data.mainSlots} ＋備取 ${data.waitlistSlots}`;
 
             const total = data.mainSlots + data.waitlistSlots;
