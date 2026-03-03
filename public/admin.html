@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 管理後台 — 報名排隊系統</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+
+    <!-- Login Screen -->
+    <div class="login-container" id="loginScreen">
+        <div class="card login-card">
+            <div class="card-header">
+                <span class="icon">🔐</span>
+                <h2>管理員登入</h2>
+            </div>
+            <p id="loginHint" style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 16px;"></p>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="loginPassword">管理員密碼</label>
+                    <input type="password" id="loginPassword" class="form-input" placeholder="輸入密碼" required
+                        minlength="4" autocomplete="current-password">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block" id="loginBtn">登入</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard (hidden until login) -->
+    <div class="container-wide" id="adminDashboard" style="display: none;">
+
+        <!-- Top Bar -->
+        <div class="admin-topbar">
+            <h1>🎮 報名管理後台</h1>
+            <div class="connection-info">
+                <span>👥 在線人數：</span>
+                <span class="count" id="clientCount">0</span>
+                <button class="sound-toggle" id="soundToggle" title="通知音效">🔔</button>
+            </div>
+        </div>
+
+        <!-- Share URL -->
+        <div class="url-bar" id="shareUrlBar">
+            <span>📎</span>
+            <code id="shareUrl">載入中...</code>
+            <button class="btn btn-sm btn-outline" id="copyUrlBtn">複製</button>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" data-tab="session">📋 場次管理</button>
+            <button class="tab" data-tab="registrations">👥 報名列表</button>
+            <button class="tab" data-tab="chat">💬 聊天室</button>
+            <button class="tab" data-tab="settings">⚙️ 設定</button>
+        </div>
+
+        <!-- Tab: Session Management -->
+        <div class="tab-content active" id="tab-session">
+            <div class="admin-layout">
+                <div>
+                    <!-- Session Controls -->
+                    <div class="card" id="sessionControlCard">
+                        <div class="card-header">
+                            <span class="icon">🎯</span>
+                            <h2>場次控制</h2>
+                            <span class="badge" id="sessionStatusBadge">—</span>
+                        </div>
+
+                        <div id="noSessionView">
+                            <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 0.9rem;">
+                                目前沒有進行中的場次，請建立新場次開始接受報名。</p>
+                            <div class="form-group">
+                                <label>場次標題</label>
+                                <input type="text" id="newTitle" class="form-input" placeholder="例：今晚吃雞第三場"
+                                    maxlength="50">
+                            </div>
+                            <div class="config-grid">
+                                <div class="form-group">
+                                    <label>正選名額</label>
+                                    <input type="number" id="newMainSlots" class="form-input" value="4" min="1"
+                                        max="100">
+                                </div>
+                                <div class="form-group">
+                                    <label>備取名額</label>
+                                    <input type="number" id="newWaitlistSlots" class="form-input" value="2" min="0"
+                                        max="100">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>遲到者處理方式</label>
+                                <select id="newLatePolicy" class="form-input">
+                                    <option value="waitlist">自動移到備取</option>
+                                    <option value="reject">直接不錄取</option>
+                                    <option value="none">不特別處理</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-success btn-block" id="createSessionBtn">
+                                <span>🚀</span> 建立場次並開始報名
+                            </button>
+                        </div>
+
+                        <div id="activeSessionView" style="display: none;">
+                            <div class="status-bar">
+                                <div class="status-indicator">
+                                    <span class="status-dot online"></span>
+                                    <span class="status-text">報名進行中</span>
+                                </div>
+                                <div class="slot-counter" id="adminSlotCounter">--</div>
+                            </div>
+                            <div class="progress-bar" style="margin-bottom: 16px;">
+                                <div class="progress-fill" id="adminProgressFill" style="width: 0%"></div>
+                            </div>
+
+                            <div class="config-grid" style="margin-bottom: 16px;">
+                                <div class="form-group">
+                                    <label>正選名額</label>
+                                    <input type="number" id="editMainSlots" class="form-input" min="1" max="100">
+                                </div>
+                                <div class="form-group">
+                                    <label>備取名額</label>
+                                    <input type="number" id="editWaitlistSlots" class="form-input" min="0" max="100">
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 16px;">
+                                <label>遲到者處理方式</label>
+                                <select id="editLatePolicy" class="form-input">
+                                    <option value="waitlist">自動移到備取</option>
+                                    <option value="reject">直接不錄取</option>
+                                    <option value="none">不特別處理</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-outline btn-block" id="updateSessionBtn"
+                                style="margin-bottom: 10px;">
+                                💾 儲存設定
+                            </button>
+
+                            <div class="btn-group">
+                                <button class="btn btn-primary" id="autoSelectBtn" style="flex:1;">
+                                    ⚡ 按時間自動錄取
+                                </button>
+                                <button class="btn btn-success" id="publishBtn" style="flex:1;">
+                                    📢 公布結果
+                                </button>
+                            </div>
+                            <button class="btn btn-danger btn-block" id="closeSessionBtn" style="margin-top: 10px;">
+                                🔒 關閉報名
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar: Quick Stats -->
+                <div class="admin-sidebar">
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="icon">📊</span>
+                            <h2>快速統計</h2>
+                        </div>
+                        <div id="quickStats">
+                            <div class="status-bar" style="margin-bottom: 8px;">
+                                <span style="font-size: 0.85rem;">總報名人數</span>
+                                <strong id="statTotal" style="color: var(--accent-primary-light);">0</strong>
+                            </div>
+                            <div class="status-bar" style="margin-bottom: 8px;">
+                                <span style="font-size: 0.85rem;">正選</span>
+                                <strong id="statSelected" style="color: var(--accent-secondary);">0</strong>
+                            </div>
+                            <div class="status-bar" style="margin-bottom: 8px;">
+                                <span style="font-size: 0.85rem;">備取</span>
+                                <strong id="statWaitlist" style="color: var(--accent-warning);">0</strong>
+                            </div>
+                            <div class="status-bar">
+                                <span style="font-size: 0.85rem;">有遲到紀錄</span>
+                                <strong id="statLate" style="color: var(--accent-danger);">0</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Copy Roster -->
+                    <div class="card" style="margin-top: 16px;">
+                        <div class="card-header">
+                            <span class="icon">📋</span>
+                            <h2>匯出名單</h2>
+                        </div>
+                        <button class="btn btn-outline btn-block" id="copyRosterBtn">📋 複製正選名單</button>
+                        <button class="btn btn-outline btn-block" id="copyAllBtn" style="margin-top: 8px;">📋
+                            複製全部名單</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Registrations -->
+        <div class="tab-content" id="tab-registrations">
+            <div class="card">
+                <div class="card-header">
+                    <span class="icon">👥</span>
+                    <h2>報名列表</h2>
+                    <span class="badge badge-open" id="regCountBadge">0 人</span>
+                </div>
+                <div id="registrationsList">
+                    <div class="empty-state">
+                        <div class="empty-icon">📭</div>
+                        <p>還沒有人報名</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Chat -->
+        <div class="tab-content" id="tab-chat">
+            <div class="card">
+                <div class="card-header">
+                    <span class="icon">💬</span>
+                    <h2>聊天室</h2>
+                </div>
+                <div class="chat-messages" id="adminChatMessages" style="height: 400px;">
+                    <div class="empty-state" id="adminChatEmpty">
+                        <p style="font-size: 0.8rem;">還沒有訊息</p>
+                    </div>
+                </div>
+                <div class="chat-input-row">
+                    <input type="text" class="form-input" id="adminChatInput" placeholder="以主辦人身份發送訊息..."
+                        maxlength="500" autocomplete="off">
+                    <button class="btn btn-primary" id="adminChatSendBtn">發送</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Settings -->
+        <div class="tab-content" id="tab-settings">
+            <div class="admin-layout">
+                <div>
+                    <!-- Background Image -->
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="icon">🖼️</span>
+                            <h2>背景圖片</h2>
+                        </div>
+                        <div class="file-upload-area" id="bgUploadArea">
+                            <div class="upload-icon">📁</div>
+                            <p>點擊選擇圖片或拖拽到此處</p>
+                            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">支援
+                                JPG、PNG、GIF、WebP（最大 10MB）</p>
+                            <input type="file" id="bgFileInput" accept=".jpg,.jpeg,.png,.gif,.webp">
+                        </div>
+                        <div id="currentBgPreview" style="margin-top: 12px; display: none;">
+                            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 8px;">目前背景：</p>
+                            <img id="bgPreviewImg"
+                                style="width: 100%; border-radius: var(--radius-sm); max-height: 200px; object-fit: cover;">
+                            <button class="btn btn-sm btn-danger" id="removeBgBtn"
+                                style="margin-top: 8px;">移除背景</button>
+                        </div>
+                    </div>
+
+                    <!-- Password -->
+                    <div class="card" style="margin-top: 16px;">
+                        <div class="card-header">
+                            <span class="icon">🔑</span>
+                            <h2>修改密碼</h2>
+                        </div>
+                        <div class="form-group">
+                            <label>新密碼</label>
+                            <input type="password" id="newPassword" class="form-input" placeholder="輸入新密碼"
+                                minlength="4">
+                        </div>
+                        <button class="btn btn-outline btn-block" id="changePasswordBtn">更新密碼</button>
+                    </div>
+                </div>
+
+                <!-- Late Records -->
+                <div>
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="icon">⚠️</span>
+                            <h2>遲到紀錄</h2>
+                        </div>
+                        <div id="lateRecordsList">
+                            <div class="empty-state">
+                                <p style="font-size: 0.85rem;">沒有遲到紀錄</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification sound -->
+    <audio id="notifSound" preload="auto">
+        <source src="data:audio/wav;base64,UklGRl9vT19teleVibmFtZQBNaWNyb3NvZnQgU291bmQgU3RyZWFtaW5nIEF1ZGlvIENvZGVj"
+            type="audio/wav">
+    </audio>
+
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    <script src="/js/admin.js"></script>
+</body>
+
+</html>

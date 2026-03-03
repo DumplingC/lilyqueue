@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="遊戲報名排隊系統 - 填寫遊戲 ID 即可報名">
+  <title>🎮 遊戲報名</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="container" id="app">
+    <!-- Header -->
+    <div class="header">
+      <h1>🎮 遊戲報名</h1>
+      <p class="subtitle" id="sessionTitle">載入中...</p>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="card" id="statusCard">
+      <div class="status-bar">
+        <div class="status-indicator">
+          <span class="status-dot" id="statusDot"></span>
+          <span class="status-text" id="statusText">連線中...</span>
+        </div>
+        <div class="slot-counter" id="slotCounter">--</div>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+      </div>
+    </div>
+
+    <!-- Registration Form (shows when session active & not registered) -->
+    <div class="card" id="registerCard" style="display: none;">
+      <div class="card-header">
+        <span class="icon">📝</span>
+        <h2>填寫報名資料</h2>
+      </div>
+      <form id="registerForm">
+        <div class="form-group">
+          <label for="gameId">遊戲 ID <span style="color: var(--accent-danger)">*</span></label>
+          <input type="text" id="gameId" class="form-input" placeholder="輸入你的遊戲 ID" required maxlength="50" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label for="displayName">顯示名稱（選填）</label>
+          <input type="text" id="displayName" class="form-input" placeholder="你想顯示的名稱" maxlength="50" autocomplete="off">
+        </div>
+        <button type="submit" class="btn btn-primary btn-block" id="submitBtn">
+          <span>🚀</span> 確認報名
+        </button>
+      </form>
+    </div>
+
+    <!-- Success Card (shows after registration) -->
+    <div class="card success-card" id="successCard" style="display: none;">
+      <div class="success-icon">✅</div>
+      <h3>報名成功！</h3>
+      <p>已收到您的報名資料</p>
+      <p id="registeredGameId" style="color: var(--accent-primary-light); font-weight: 600;"></p>
+      <div class="queue-position" id="queuePosition">
+        <span>📋</span> 排隊順序：第 <strong id="positionNum">-</strong> 位
+      </div>
+      <div id="lateWarning" style="display: none; margin-top: 12px;">
+        <span class="badge-late">⚠️ 此帳號有遲到紀錄</span>
+      </div>
+      <div id="myStatusDisplay" style="margin-top: 16px; display: none;">
+        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 6px;">您的狀態</p>
+        <span class="badge" id="myStatusBadge"></span>
+      </div>
+    </div>
+
+    <!-- Closed Message -->
+    <div class="card" id="closedCard" style="display: none;">
+      <div class="empty-state">
+        <div class="empty-icon">🔒</div>
+        <p>目前沒有開放報名的場次</p>
+        <p style="margin-top: 8px; font-size: 0.8rem;">請等待主辦人開啟報名</p>
+      </div>
+    </div>
+
+    <!-- Results Card -->
+    <div class="card" id="resultsCard" style="display: none;">
+      <div class="card-header">
+        <span class="icon">📊</span>
+        <h2>錄取結果</h2>
+      </div>
+      <div class="results-section" id="resultsContent"></div>
+    </div>
+
+    <!-- Chat -->
+    <div class="card chat-container" id="chatCard" style="display: none;">
+      <div class="card-header">
+        <span class="icon">💬</span>
+        <h2>聊天室</h2>
+        <span class="badge badge-open" id="chatOnlineBadge">在線</span>
+      </div>
+      <div class="chat-messages" id="chatMessages">
+        <div class="empty-state" id="chatEmpty">
+          <p style="font-size: 0.8rem;">還沒有訊息，來打個招呼吧！</p>
+        </div>
+      </div>
+      <div class="chat-input-row">
+        <input type="text" class="form-input" id="chatInput" placeholder="輸入訊息..." maxlength="500" autocomplete="off">
+        <button class="btn btn-primary" id="chatSendBtn">發送</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>
