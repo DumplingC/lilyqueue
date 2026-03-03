@@ -172,19 +172,30 @@ function getLocalIP() {
 // ─── Start server ─────────────────────────────────────────────────
 const PORT = process.env.PORT || 3000;
 
-server.listen(PORT, '0.0.0.0', () => {
-    const localIP = getLocalIP();
-    console.log('');
-    console.log('╔══════════════════════════════════════════════════════╗');
-    console.log('║        🎮 遊戲報名排隊系統 已啟動！                  ║');
-    console.log('╠══════════════════════════════════════════════════════╣');
-    console.log(`║  管理員面板:  http://localhost:${PORT}/admin          ║`);
-    console.log(`║  報名頁面:    http://${localIP}:${PORT}              ║`);
-    console.log('╠══════════════════════════════════════════════════════╣');
-    console.log('║  把上面的「報名頁面」網址分享給其他玩家即可！        ║');
-    console.log('║  按 Ctrl+C 關閉系統                                 ║');
-    console.log('╚══════════════════════════════════════════════════════╝');
-    console.log('');
+async function start() {
+    // Initialize database (sql.js loads WASM asynchronously)
+    await db.initialize();
+    console.log('✅ 資料庫已載入');
+
+    server.listen(PORT, '0.0.0.0', () => {
+        const localIP = getLocalIP();
+        console.log('');
+        console.log('╔══════════════════════════════════════════════════════╗');
+        console.log('║        🎮 遊戲報名排隊系統 已啟動！                  ║');
+        console.log('╠══════════════════════════════════════════════════════╣');
+        console.log(`║  管理員面板:  http://localhost:${PORT}/admin          ║`);
+        console.log(`║  報名頁面:    http://${localIP}:${PORT}              ║`);
+        console.log('╠══════════════════════════════════════════════════════╣');
+        console.log('║  把上面的「報名頁面」網址分享給其他玩家即可！        ║');
+        console.log('║  按 Ctrl+C 關閉系統                                 ║');
+        console.log('╚══════════════════════════════════════════════════════╝');
+        console.log('');
+    });
+}
+
+start().catch(err => {
+    console.error('啟動失敗:', err);
+    process.exit(1);
 });
 
 // Graceful shutdown
