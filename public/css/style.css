@@ -148,6 +148,61 @@ body.has-bg-image>* {
   min-height: 100vh;
 }
 
+/* ─── Side-by-Side User Layout ───────────────────────────────────── */
+.user-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.user-left-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.user-right-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: sticky;
+  top: 20px;
+}
+
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 500px;
+}
+
+.chat-container .chat-layout {
+  flex: 1;
+  display: flex;
+}
+
+.chat-container .chat-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.chat-container .chat-messages {
+  flex: 1;
+  min-height: 300px;
+}
+
+@media (max-width: 768px) {
+  .user-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .user-right-col {
+    position: static;
+  }
+}
+
 /* ─── Header ─────────────────────────────────────────────────────── */
 .header {
   text-align: center;

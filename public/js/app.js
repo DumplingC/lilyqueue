@@ -30,6 +30,7 @@
     const closedCard = $('#closedCard');
     const resultsCard = $('#resultsCard');
     const chatCard = $('#chatCard');
+    const chatColumn = $('#chatColumn');
     const registerForm = $('#registerForm');
     const gameIdInput = $('#gameId');
     const displayNameInput = $('#displayName');
@@ -125,12 +126,12 @@
                 registerCard.style.display = 'none';
                 statusDisplayCard.style.display = '';
                 closedCard.style.display = 'none';
-                chatCard.style.display = '';
+                chatColumn.style.display = '';
             } else {
                 registerCard.style.display = '';
                 statusDisplayCard.style.display = 'none';
                 closedCard.style.display = 'none';
-                chatCard.style.display = 'none';
+                chatColumn.style.display = 'none';
             }
 
             if (data.resultsPublished) {
@@ -148,7 +149,7 @@
             registerCard.style.display = 'none';
             statusDisplayCard.style.display = 'none';
             closedCard.style.display = '';
-            chatCard.style.display = 'none';
+            chatColumn.style.display = 'none';
             resultsCard.style.display = 'none';
         }
     }
@@ -203,8 +204,7 @@
                 state.registered = true;
                 registerCard.style.display = 'none';
                 statusDisplayCard.style.display = '';
-                chatCard.style.display = '';
-
+                chatColumn.style.display = '';
                 $('#registeredGameId').textContent = `遊戲 ID：${state.gameId}`;
                 $('#positionNum').textContent = data.position;
 
@@ -264,7 +264,7 @@
 
             registerCard.style.display = 'none';
             statusDisplayCard.style.display = '';
-            chatCard.style.display = '';
+            chatColumn.style.display = '';
 
             $('#registeredGameId').textContent = `遊戲 ID：${gameId}`;
             $('#positionNum').textContent = data.position;

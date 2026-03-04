@@ -380,15 +380,16 @@
 
     // Global functions for inline handlers
     window._changeStatus = async function (regId, status) {
+        const statusLabels = { pending: '⏳ 等待', selected: '✅ 正選', waitlist: '📋 備取', rejected: '❌ 未錄取' };
         try {
             await api('/admin/select', {
                 method: 'POST',
                 body: { registrationId: regId, status }
             });
-            // The socket event will refresh the list
+            showToast(`已更新為 ${statusLabels[status] || status}`);
         } catch (e) {
             showToast(e.message, 'error');
-            loadSessionData(); // Refresh on error
+            loadSessionData();
         }
     };
 
@@ -601,6 +602,80 @@
             hideBgPreview();
         } catch (e) {
             showToast(e.message, 'error');
+        }
+    });
+
+    // ─── Crop background image ────────────────────────────────────────
+    let currentCropper = null;
+
+    $('#cropBgBtn').addEventListener('click', () => {
+        const previewImg = $('#bgPreviewImg');
+        if (!previewImg || !previewImg.src) {
+            showToast('請先上傳背景圖片', 'error');
+            return;
+        }
+        const modal = $('#cropModal');
+        const cropImg = $('#cropImage');
+        cropImg.src = previewImg.src;
+        modal.style.display = 'flex';
+
+        // Destroy previous cropper if any
+        if (currentCropper) {
+            currentCropper.destroy();
+            currentCropper = null;
+        }
+
+        // Wait for image to load then init cropper
+        cropImg.onload = () => {
+            currentCropper = new Cropper(cropImg, {
+                aspectRatio: NaN, // free crop
+                viewMode: 1,
+                autoCropArea: 0.8,
+                responsive: true,
+                background: false
+            });
+        };
+    });
+
+    $('#cropCancelBtn').addEventListener('click', () => {
+        $('#cropModal').style.display = 'none';
+        if (currentCropper) {
+            currentCropper.destroy();
+            currentCropper = null;
+        }
+    });
+
+    $('#cropApplyBtn').addEventListener('click', async () => {
+        if (!currentCropper) return;
+        try {
+            const canvas = currentCropper.getCroppedCanvas({
+                maxWidth: 1920,
+                maxHeight: 1080
+            });
+            canvas.toBlob(async (blob) => {
+                const formData = new FormData();
+                formData.append('background', blob, 'cropped-bg.jpg');
+                try {
+                    const res = await fetch('/api/admin/upload-bg', {
+                        method: 'POST',
+                        headers: { 'X-Admin-Token': adminToken },
+                        body: formData
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error);
+                    showToast('裁切後的圖片已套用');
+                    showBgPreview(data.url);
+                } catch (e) {
+                    showToast(e.message, 'error');
+                }
+            }, 'image/jpeg', 0.9);
+        } catch (e) {
+            showToast('裁切失敗', 'error');
+        }
+        $('#cropModal').style.display = 'none';
+        if (currentCropper) {
+            currentCropper.destroy();
+            currentCropper = null;
         }
     });
 
