@@ -341,52 +341,119 @@
                         </div>
                         <button class="btn btn-outline btn-block" id="changePasswordBtn">更新密碼</button>
                     </div>
-                </div>
 
-                <!-- Late Records -->
-                <div>
-                    <div class="card">
+                    <!-- Theme Settings -->
+                    <div class="card" style="margin-top: 16px;">
                         <div class="card-header">
-                            <span class="icon">⚠️</span>
-                            <h2>遲到紀錄</h2>
+                            <span class="icon">🎨</span>
+                            <h2>外觀設定</h2>
                         </div>
-                        <div id="lateRecordsList">
-                            <div class="empty-state">
-                                <p style="font-size: 0.85rem;">沒有遲到紀錄</p>
+                        <div class="form-group">
+                            <label>主題色</label>
+                            <div class="theme-presets" id="themePresets">
+                                <button class="theme-swatch active" data-color="#7c5cff" style="background:#7c5cff;"
+                                    title="紫色"></button>
+                                <button class="theme-swatch" data-color="#4f8cff" style="background:#4f8cff;"
+                                    title="藍色"></button>
+                                <button class="theme-swatch" data-color="#00c853" style="background:#00c853;"
+                                    title="綠色"></button>
+                                <button class="theme-swatch" data-color="#ff5577" style="background:#ff5577;"
+                                    title="紅色"></button>
+                                <button class="theme-swatch" data-color="#ff9800" style="background:#ff9800;"
+                                    title="橘色"></button>
+                                <input type="color" id="themeCustomColor" value="#7c5cff" title="自訂色碼"
+                                    class="theme-color-input">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>背景色（主）</label>
+                            <div style="display:flex;gap:8px;align-items:center;">
+                                <input type="color" id="themeBgPrimary" value="#0a0a1a" class="theme-color-input">
+                                <code id="themeBgPrimaryVal"
+                                    style="font-size:0.75rem;color:var(--text-muted);">#0a0a1a</code>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>背景色（副）</label>
+                            <div style="display:flex;gap:8px;align-items:center;">
+                                <input type="color" id="themeBgSecondary" value="#12122a" class="theme-color-input">
+                                <code id="themeBgSecondaryVal"
+                                    style="font-size:0.75rem;color:var(--text-muted);">#12122a</code>
+                            </div>
+                        </div>
+                        <hr style="border-color:var(--border-color);margin:12px 0;">
+                        <div class="form-group">
+                            <label>標題字體大小 <span id="fontTitleVal" style="color:var(--text-muted);">1.5rem</span></label>
+                            <input type="range" id="fontSizeTitle" min="1" max="3" step="0.1" value="1.5"
+                                class="form-range">
+                        </div>
+                        <div class="form-group">
+                            <label>正文字體大小 <span id="fontBodyVal" style="color:var(--text-muted);">0.9rem</span></label>
+                            <input type="range" id="fontSizeBody" min="0.7" max="1.5" step="0.05" value="0.9"
+                                class="form-range">
+                        </div>
+                        <div class="form-group">
+                            <label>聊天字體大小 <span id="fontChatVal" style="color:var(--text-muted);">0.85rem</span></label>
+                            <input type="range" id="fontSizeChat" min="0.7" max="1.4" step="0.05" value="0.85"
+                                class="form-range">
+                        </div>
+                        <div class="form-group">
+                            <label>標籤字體大小 <span id="fontLabelVal"
+                                    style="color:var(--text-muted);">0.75rem</span></label>
+                            <input type="range" id="fontSizeLabel" min="0.6" max="1.2" step="0.05" value="0.75"
+                                class="form-range">
+                        </div>
+                        <button class="btn btn-primary btn-block" id="saveThemeBtn">💾 儲存主題設定</button>
+                        <button class="btn btn-outline btn-block" id="resetThemeBtn" style="margin-top:6px;">🔄
+                            重設為預設</button>
+                    </div>
+
+                    <!-- Late Records -->
+                    <div>
+                        <div class="card">
+                            <div class="card-header">
+                                <span class="icon">⚠️</span>
+                                <h2>遲到紀錄</h2>
+                            </div>
+                            <div id="lateRecordsList">
+                                <div class="empty-state">
+                                    <p style="font-size: 0.85rem;">沒有遲到紀錄</p>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Crop Modal (canvas-based, no external deps) -->
-    <div id="cropModal" class="crop-modal" style="display:none;">
-        <div class="crop-modal-inner">
-            <h3 style="margin-bottom:12px;">✂️ 裁切背景圖片</h3>
-            <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:8px;">拖曳選取裁切區域</p>
-            <div style="position:relative; overflow:hidden; border-radius:8px; border:1px solid var(--border-color);">
-                <canvas id="cropCanvas" style="width:100%; display:block; cursor:crosshair;"></canvas>
-                <div id="cropOverlay"
-                    style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;"></div>
-            </div>
-            <div style="display:flex; gap:10px; margin-top:16px; justify-content:flex-end;">
-                <button class="btn btn-outline" id="cropCancelBtn">取消</button>
-                <button class="btn btn-outline" id="cropResetBtn">🔄 重選</button>
-                <button class="btn btn-primary" id="cropApplyBtn">✅ 套用裁切</button>
+        <!-- Crop Modal (canvas-based, no external deps) -->
+        <div id="cropModal" class="crop-modal" style="display:none;">
+            <div class="crop-modal-inner">
+                <h3 style="margin-bottom:12px;">✂️ 裁切背景圖片</h3>
+                <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:8px;">拖曳選取裁切區域</p>
+                <div
+                    style="position:relative; overflow:hidden; border-radius:8px; border:1px solid var(--border-color);">
+                    <canvas id="cropCanvas" style="width:100%; display:block; cursor:crosshair;"></canvas>
+                    <div id="cropOverlay"
+                        style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;"></div>
+                </div>
+                <div style="display:flex; gap:10px; margin-top:16px; justify-content:flex-end;">
+                    <button class="btn btn-outline" id="cropCancelBtn">取消</button>
+                    <button class="btn btn-outline" id="cropResetBtn">🔄 重選</button>
+                    <button class="btn btn-primary" id="cropApplyBtn">✅ 套用裁切</button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Notification sound -->
-    <audio id="notifSound" preload="auto">
-        <source src="data:audio/wav;base64,UklGRl9vT19teleVibmFtZQBNaWNyb3NvZnQgU291bmQgU3RyZWFtaW5nIEF1ZGlvIENvZGVj"
-            type="audio/wav">
-    </audio>
+        <!-- Notification sound -->
+        <audio id="notifSound" preload="auto">
+            <source
+                src="data:audio/wav;base64,UklGRl9vT19teleVibmFtZQBNaWNyb3NvZnQgU291bmQgU3RyZWFtaW5nIEF1ZGlvIENvZGVj"
+                type="audio/wav">
+        </audio>
 
-    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
-    <script src="/js/admin.js"></script>
+        <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+        <script src="/js/admin.js"></script>
 </body>
 
 </html>

@@ -53,6 +53,10 @@
 
   /* Typography */
   --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-size-title: 1.5rem;
+  --font-size-body: 0.9rem;
+  --font-size-chat: 0.85rem;
+  --font-size-label: 0.75rem;
 
   /* Transitions */
   --transition-fast: 0.15s ease;
@@ -158,7 +162,7 @@ body.has-bg-image>* {
 }
 
 .app-header h1 {
-  font-size: 1.5rem;
+  font-size: var(--font-size-title);
   font-weight: 800;
   background: var(--gradient-primary);
   -webkit-background-clip: text;
@@ -984,7 +988,7 @@ select.form-input option {
 }
 
 .chat-msg .chat-text {
-  font-size: 0.85rem;
+  font-size: var(--font-size-chat);
   color: var(--text-primary);
   padding-left: 2px;
   word-break: break-word;
@@ -1710,4 +1714,81 @@ select.form-input option {
 .form-input-xs {
   padding: 4px 8px;
   font-size: 0.75rem;
+}
+
+/* ─── Theme Preset Swatches ──────────────────────────────────────── */
+.theme-presets {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.theme-swatch {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.15s, border-color 0.15s;
+}
+
+.theme-swatch:hover {
+  transform: scale(1.15);
+}
+
+.theme-swatch.active {
+  border-color: #fff;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
+}
+
+.theme-color-input {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 50%;
+  padding: 0;
+}
+
+.theme-color-input::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.theme-color-input::-webkit-color-swatch {
+  border: 2px solid var(--border-color);
+  border-radius: 50%;
+}
+
+/* ─── Range Slider ───────────────────────────────────────────────── */
+.form-range {
+  width: 100%;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--bg-glass-strong);
+  border-radius: 3px;
+  outline: none;
+  margin-top: 4px;
+}
+
+.form-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  cursor: pointer;
+  box-shadow: 0 0 6px rgba(124, 92, 255, 0.5);
+}
+
+.form-range::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  cursor: pointer;
+  border: none;
 }

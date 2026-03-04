@@ -563,8 +563,37 @@
         });
     });
 
+    // ─── Theme Loader ─────────────────────────────────────────────────
+    function applyTheme(theme) {
+        const root = document.documentElement;
+        if (theme.accentColor) {
+            root.style.setProperty('--accent-primary', theme.accentColor);
+            root.style.setProperty('--accent-primary-light', theme.accentColor + 'cc');
+            root.style.setProperty('--border-color', theme.accentColor + '33');
+            root.style.setProperty('--border-color-light', theme.accentColor + '1a');
+            root.style.setProperty('--border-glow', theme.accentColor + '66');
+        }
+        if (theme.bgPrimary) root.style.setProperty('--bg-primary', theme.bgPrimary);
+        if (theme.bgSecondary) root.style.setProperty('--bg-secondary', theme.bgSecondary);
+        if (theme.fontSizeTitle) root.style.setProperty('--font-size-title', theme.fontSizeTitle + 'rem');
+        if (theme.fontSizeBody) root.style.setProperty('--font-size-body', theme.fontSizeBody + 'rem');
+        if (theme.fontSizeChat) root.style.setProperty('--font-size-chat', theme.fontSizeChat + 'rem');
+        if (theme.fontSizeLabel) root.style.setProperty('--font-size-label', theme.fontSizeLabel + 'rem');
+    }
+
+    async function loadTheme() {
+        try {
+            const theme = await fetch('/api/theme').then(r => r.json());
+            applyTheme(theme);
+        } catch (e) { /* use default */ }
+    }
+
+    // Listen for real-time theme changes
+    socket.on('theme:updated', applyTheme);
+
     // ─── Init ─────────────────────────────────────────────────────────
     restoreState();
     loadStatus();
     loadBackground();
+    loadTheme();
 })();

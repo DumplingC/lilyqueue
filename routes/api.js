@@ -514,6 +514,35 @@ router.delete('/admin/background', requireAdmin, (req, res) => {
     res.json({ message: '背景圖片已移除' });
 });
 
+// ─── Theme Settings ───────────────────────────────────────────────
+router.get('/theme', (req, res) => {
+    const raw = db.getSettingValue('theme_settings', '{}');
+    try {
+        res.json(JSON.parse(raw));
+    } catch (e) {
+        res.json({});
+    }
+});
+
+router.put('/admin/theme', requireAdmin, (req, res) => {
+    const theme = {
+        accentColor: req.body.accentColor || '',
+        bgPrimary: req.body.bgPrimary || '',
+        bgSecondary: req.body.bgSecondary || '',
+        fontSizeTitle: req.body.fontSizeTitle || '',
+        fontSizeBody: req.body.fontSizeBody || '',
+        fontSizeChat: req.body.fontSizeChat || '',
+        fontSizeLabel: req.body.fontSizeLabel || ''
+    };
+    db.setSettingValue('theme_settings', JSON.stringify(theme));
+
+    if (req.app.io) {
+        req.app.io.emit('theme:updated', theme);
+    }
+
+    res.json({ message: '主題設定已儲存' });
+});
+
 // Get chat messages (public, for registered users)
 router.get('/chat', (req, res) => {
     const session = db.getActiveSession();

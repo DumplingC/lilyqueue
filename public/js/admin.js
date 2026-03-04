@@ -1052,7 +1052,140 @@
         showToast('已複製報名連結');
     });
 
+    // ═══════════════════════════════════════════════════════════════════
+    // THEME SETTINGS
+    // ═══════════════════════════════════════════════════════════════════
+    const defaultTheme = {
+        accentColor: '#7c5cff',
+        bgPrimary: '#0a0a1a',
+        bgSecondary: '#12122a',
+        fontSizeTitle: '1.5',
+        fontSizeBody: '0.9',
+        fontSizeChat: '0.85',
+        fontSizeLabel: '0.75'
+    };
+
+    function applyTheme(theme) {
+        const root = document.documentElement;
+        if (theme.accentColor) {
+            root.style.setProperty('--accent-primary', theme.accentColor);
+            // Generate lighter/darker variants
+            root.style.setProperty('--accent-primary-light', theme.accentColor + 'cc');
+            root.style.setProperty('--border-color', theme.accentColor + '33');
+            root.style.setProperty('--border-color-light', theme.accentColor + '1a');
+            root.style.setProperty('--border-glow', theme.accentColor + '66');
+        }
+        if (theme.bgPrimary) root.style.setProperty('--bg-primary', theme.bgPrimary);
+        if (theme.bgSecondary) root.style.setProperty('--bg-secondary', theme.bgSecondary);
+        if (theme.fontSizeTitle) root.style.setProperty('--font-size-title', theme.fontSizeTitle + 'rem');
+        if (theme.fontSizeBody) root.style.setProperty('--font-size-body', theme.fontSizeBody + 'rem');
+        if (theme.fontSizeChat) root.style.setProperty('--font-size-chat', theme.fontSizeChat + 'rem');
+        if (theme.fontSizeLabel) root.style.setProperty('--font-size-label', theme.fontSizeLabel + 'rem');
+    }
+
+    function updateThemeUI(theme) {
+        const t = { ...defaultTheme, ...theme };
+        // Swatches
+        document.querySelectorAll('.theme-swatch').forEach(s => {
+            s.classList.toggle('active', s.dataset.color === t.accentColor);
+        });
+        $('#themeCustomColor').value = t.accentColor;
+        $('#themeBgPrimary').value = t.bgPrimary;
+        $('#themeBgSecondary').value = t.bgSecondary;
+        $('#themeBgPrimaryVal').textContent = t.bgPrimary;
+        $('#themeBgSecondaryVal').textContent = t.bgSecondary;
+        // Sliders
+        $('#fontSizeTitle').value = t.fontSizeTitle;
+        $('#fontSizeBody').value = t.fontSizeBody;
+        $('#fontSizeChat').value = t.fontSizeChat;
+        $('#fontSizeLabel').value = t.fontSizeLabel;
+        $('#fontTitleVal').textContent = t.fontSizeTitle + 'rem';
+        $('#fontBodyVal').textContent = t.fontSizeBody + 'rem';
+        $('#fontChatVal').textContent = t.fontSizeChat + 'rem';
+        $('#fontLabelVal').textContent = t.fontSizeLabel + 'rem';
+    }
+
+    function getThemeFromUI() {
+        return {
+            accentColor: $('#themeCustomColor').value,
+            bgPrimary: $('#themeBgPrimary').value,
+            bgSecondary: $('#themeBgSecondary').value,
+            fontSizeTitle: $('#fontSizeTitle').value,
+            fontSizeBody: $('#fontSizeBody').value,
+            fontSizeChat: $('#fontSizeChat').value,
+            fontSizeLabel: $('#fontSizeLabel').value
+        };
+    }
+
+    async function loadTheme() {
+        try {
+            const theme = await fetch('/api/theme').then(r => r.json());
+            updateThemeUI(theme);
+            applyTheme(theme);
+        } catch (e) { /* use default */ }
+    }
+
+    // Swatch click
+    document.querySelectorAll('.theme-swatch').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.theme-swatch').forEach(s => s.classList.remove('active'));
+            btn.classList.add('active');
+            $('#themeCustomColor').value = btn.dataset.color;
+            applyTheme(getThemeFromUI()); // live preview
+        });
+    });
+
+    // Custom color
+    $('#themeCustomColor').addEventListener('input', (e) => {
+        document.querySelectorAll('.theme-swatch').forEach(s => s.classList.remove('active'));
+        applyTheme(getThemeFromUI());
+    });
+
+    // BG colors
+    $('#themeBgPrimary').addEventListener('input', () => {
+        $('#themeBgPrimaryVal').textContent = $('#themeBgPrimary').value;
+        applyTheme(getThemeFromUI());
+    });
+    $('#themeBgSecondary').addEventListener('input', () => {
+        $('#themeBgSecondaryVal').textContent = $('#themeBgSecondary').value;
+        applyTheme(getThemeFromUI());
+    });
+
+    // Font size sliders
+    ['Title', 'Body', 'Chat', 'Label'].forEach(name => {
+        const slider = $(`#fontSize${name}`);
+        const label = $(`#font${name}Val`);
+        slider.addEventListener('input', () => {
+            label.textContent = slider.value + 'rem';
+            applyTheme(getThemeFromUI());
+        });
+    });
+
+    // Save
+    $('#saveThemeBtn').addEventListener('click', async () => {
+        try {
+            await api('/admin/theme', { method: 'PUT', body: getThemeFromUI() });
+            showToast('主題設定已儲存');
+        } catch (e) {
+            showToast(e.message, 'error');
+        }
+    });
+
+    // Reset
+    $('#resetThemeBtn').addEventListener('click', async () => {
+        if (!confirm('確定要重設為預設主題？')) return;
+        try {
+            await api('/admin/theme', { method: 'PUT', body: defaultTheme });
+            updateThemeUI(defaultTheme);
+            applyTheme(defaultTheme);
+            showToast('已重設為預設主題');
+        } catch (e) {
+            showToast(e.message, 'error');
+        }
+    });
+
     // ─── Init ─────────────────────────────────────────────────────────
     checkAuth();
+    loadTheme();
 
 })();
