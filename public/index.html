@@ -3,45 +3,43 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="description" content="莉刻報名系統 - 填寫遊戲 ID 即可報名">
   <title>🎮 莉刻報名系統</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
 
 <body>
-  <div class="container-wide" id="app">
-    <!-- Announcement Banner -->
+  <div class="app-wrapper" id="app">
+    <!-- Announcement Banner (top-level, always full width) -->
     <div class="announcement-banner" id="announcementBanner" style="display: none;">
       <span class="announcement-icon">📢</span>
       <span class="announcement-text" id="announcementText"></span>
     </div>
 
-    <!-- Header -->
-    <div class="header">
+    <!-- Compact Header -->
+    <header class="app-header">
       <h1>🎮 莉刻報名系統</h1>
       <p class="subtitle" id="sessionTitle">載入中...</p>
-    </div>
+    </header>
 
     <!-- Status Bar -->
-    <div class="card" id="statusCard">
-      <div class="status-bar">
-        <div class="status-indicator">
-          <span class="status-dot" id="statusDot"></span>
-          <span class="status-text" id="statusText">連線中...</span>
-        </div>
-        <div class="slot-counter" id="slotCounter">--</div>
+    <div class="status-strip">
+      <div class="status-left">
+        <span class="status-dot" id="statusDot"></span>
+        <span class="status-text" id="statusText">連線中...</span>
       </div>
-      <div class="progress-bar">
-        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
-      </div>
+      <div class="status-right" id="slotCounter">--</div>
+    </div>
+    <div class="progress-bar progress-bar-top">
+      <div class="progress-fill" id="progressFill" style="width: 0%"></div>
     </div>
 
-    <!-- Side-by-side Layout: Left = Form/Status, Right = Chat -->
-    <div class="user-layout" id="userLayout">
-      <!-- LEFT COLUMN -->
-      <div class="user-left-col">
-        <!-- Registration Form (shows when session active & not registered) -->
+    <!-- Main Content Area (two-col on desktop, single-col on mobile) -->
+    <main class="main-layout">
+      <!-- LEFT / TOP: Status & Forms -->
+      <section class="panel-primary">
+        <!-- Registration Form -->
         <div class="card" id="registerCard" style="display: none;">
           <div class="card-header">
             <span class="icon">📝</span>
@@ -49,7 +47,7 @@
           </div>
           <form id="registerForm">
             <div class="form-group">
-              <label for="gameId">遊戲 ID <span style="color: var(--accent-danger)">*</span></label>
+              <label for="gameId">遊戲 ID <span class="required">*</span></label>
               <input type="text" id="gameId" class="form-input" placeholder="輸入你的遊戲 ID" required maxlength="50"
                 autocomplete="off">
             </div>
@@ -64,39 +62,35 @@
           </form>
         </div>
 
-        <!-- Status Card (shows after registration - dynamic status) -->
-        <div class="card" id="statusDisplayCard" style="display: none;">
-          <div id="reviewingView">
-            <div class="success-card">
-              <div class="success-icon" id="statusIcon">⏳</div>
-              <h3 id="statusTitle">等待管理員審核</h3>
-              <p id="statusMessage">已收到您的報名資料，請等待主辦人審核</p>
-              <p id="registeredGameId" style="color: var(--accent-primary-light); font-weight: 600;"></p>
-              <div class="queue-position" id="queuePosition">
-                <span>📋</span> 排隊順序：第 <strong id="positionNum">-</strong> 位
-              </div>
-              <div id="lateWarning"
-                style="display: none; margin-top: 12px; padding: 10px; background: rgba(255,179,71,0.1); border: 1px solid rgba(255,179,71,0.3); border-radius: 8px;">
-                <span style="color: var(--accent-warning); font-weight: 600;">⚠️ 您有遲到紀錄，將由管理員決定是否錄取</span>
-              </div>
-              <div id="myStatusDisplay" style="margin-top: 16px;">
-                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 6px;">您的審核狀態</p>
-                <span class="badge badge-pending" id="myStatusBadge">⏳ 審核中</span>
-              </div>
+        <!-- Status Display (shows after registration) -->
+        <div class="card status-result-card" id="statusDisplayCard" style="display: none;">
+          <div class="status-result-inner">
+            <div class="status-result-icon" id="statusIcon">⏳</div>
+            <h3 class="status-result-title" id="statusTitle">等待管理員審核</h3>
+            <p class="status-result-msg" id="statusMessage">已收到您的報名資料，請等待主辦人審核</p>
+            <p class="status-result-id" id="registeredGameId"></p>
+            <div class="status-result-position">
+              📋 排隊順序：第 <strong id="positionNum">-</strong> 位
+            </div>
+            <div class="late-warning" id="lateWarning" style="display: none;">
+              ⚠️ 您有遲到紀錄，將由管理員決定是否錄取
+            </div>
+            <div class="status-badge-row">
+              <span class="badge badge-pending" id="myStatusBadge">⏳ 審核中</span>
             </div>
           </div>
         </div>
 
-        <!-- Closed Message -->
+        <!-- Closed -->
         <div class="card" id="closedCard" style="display: none;">
           <div class="empty-state">
             <div class="empty-icon">🔒</div>
             <p>目前沒有開放報名的場次</p>
-            <p style="margin-top: 8px; font-size: 0.8rem;">請等待主辦人開啟報名</p>
+            <p class="hint">請等待主辦人開啟報名</p>
           </div>
         </div>
 
-        <!-- Results Card -->
+        <!-- Results -->
         <div class="card" id="resultsCard" style="display: none;">
           <div class="card-header">
             <span class="icon">📊</span>
@@ -104,49 +98,48 @@
           </div>
           <div class="results-section" id="resultsContent"></div>
         </div>
-      </div>
+      </section>
 
-      <!-- RIGHT COLUMN: Chat + Online List -->
-      <div class="user-right-col" id="chatColumn" style="display: none;">
-        <div class="card chat-container" id="chatCard">
-          <div class="card-header">
-            <span class="icon">💬</span>
-            <h2>聊天室</h2>
-            <span class="badge badge-open" id="chatOnlineBadge">在線</span>
-          </div>
-          <div class="chat-layout">
-            <div class="chat-main">
-              <div class="chat-messages" id="chatMessages">
-                <div class="empty-state" id="chatEmpty">
-                  <p style="font-size: 0.8rem;">還沒有訊息，來打個招呼吧！</p>
-                </div>
-              </div>
-              <div class="chat-input-row">
-                <input type="text" class="form-input" id="chatInput" placeholder="輸入訊息..." maxlength="500"
-                  autocomplete="off">
-                <button class="btn btn-primary" id="chatSendBtn">發送</button>
-              </div>
-            </div>
-            <div class="chat-sidebar">
-              <div class="sidebar-header">
-                <span>👥</span> 在線名單
-              </div>
-              <div class="online-list" id="onlineList">
-                <p class="online-empty">暫無在線用戶</p>
-              </div>
-              <div class="my-status-selector">
-                <label style="font-size: 0.75rem; color: var(--text-muted);">我的狀態</label>
-                <select class="form-input" id="myUserStatus" style="padding: 6px 10px; font-size: 0.8rem;">
-                  <option value="在線">🟢 在線</option>
-                  <option value="暫離">🟡 暫離</option>
-                  <option value="稍等一下">🔴 稍等一下</option>
-                </select>
-              </div>
-            </div>
+      <!-- RIGHT / BOTTOM: Chat (visible after registration) -->
+      <section class="panel-chat" id="chatColumn" style="display: none;">
+        <!-- Mobile tab buttons -->
+        <div class="chat-tabs">
+          <button class="chat-tab active" data-tab="messages">💬 聊天</button>
+          <button class="chat-tab" data-tab="online">👥 在線 <span class="online-count-badge"
+              id="onlineCountBadge">0</span></button>
+          <div class="my-status-inline">
+            <select class="form-input form-input-xs" id="myUserStatus">
+              <option value="在線">🟢 在線</option>
+              <option value="暫離">🟡 暫離</option>
+              <option value="稍等一下">🔴 稍等一下</option>
+            </select>
           </div>
         </div>
-      </div>
-    </div>
+
+        <!-- Chat messages tab -->
+        <div class="chat-tab-content active" id="tabMessages">
+          <div class="chat-messages" id="chatMessages">
+            <div class="empty-state" id="chatEmpty">
+              <p style="font-size: 0.8rem;">還沒有訊息，來打個招呼吧！</p>
+            </div>
+          </div>
+          <div class="chat-input-row">
+            <input type="text" class="form-input" id="chatInput" placeholder="輸入訊息..." maxlength="500"
+              autocomplete="off">
+            <button class="btn btn-primary btn-send" id="chatSendBtn">
+              <span class="send-icon">➤</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Online list tab -->
+        <div class="chat-tab-content" id="tabOnline">
+          <div class="online-list-full" id="onlineList">
+            <p class="online-empty">暫無在線用戶</p>
+          </div>
+        </div>
+      </section>
+    </main>
   </div>
 
   <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>

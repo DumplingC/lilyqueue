@@ -29,7 +29,6 @@
     const statusDisplayCard = $('#statusDisplayCard');
     const closedCard = $('#closedCard');
     const resultsCard = $('#resultsCard');
-    const chatCard = $('#chatCard');
     const chatColumn = $('#chatColumn');
     const registerForm = $('#registerForm');
     const gameIdInput = $('#gameId');
@@ -334,16 +333,17 @@
         return html;
     }
 
-    // ─── Online List ──────────────────────────────────────────────────
+    // ─── Online List ─────────────────────────────────────────────────────
     function updateOnlineList(users) {
         const container = $('#onlineList');
+        const badge = $('#onlineCountBadge');
         if (!users || users.length === 0) {
             container.innerHTML = '<p class="online-empty">暫無在線用戶</p>';
-            $('#chatOnlineBadge').textContent = `0 人在線`;
+            if (badge) badge.textContent = '0';
             return;
         }
 
-        $('#chatOnlineBadge').textContent = `${users.length} 人在線`;
+        if (badge) badge.textContent = users.length;
 
         let html = '';
         users.forEach(user => {
@@ -512,6 +512,18 @@
             return isoStr;
         }
     }
+
+    // ─── Chat Tab Switching ────────────────────────────────────────────
+    document.querySelectorAll('.chat-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            const target = tab.dataset.tab;
+            document.querySelectorAll('.chat-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            document.querySelectorAll('.chat-tab-content').forEach(c => c.classList.remove('active'));
+            const panel = target === 'messages' ? $('#tabMessages') : $('#tabOnline');
+            if (panel) panel.classList.add('active');
+        });
+    });
 
     // ─── Init ─────────────────────────────────────────────────────────
     restoreState();
