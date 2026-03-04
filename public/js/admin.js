@@ -1236,6 +1236,11 @@
         if (theme.fontSizeBody) root.style.setProperty('--font-size-body', theme.fontSizeBody + 'rem');
         if (theme.fontSizeChat) root.style.setProperty('--font-size-chat', theme.fontSizeChat + 'rem');
         if (theme.fontSizeLabel) root.style.setProperty('--font-size-label', theme.fontSizeLabel + 'rem');
+        // System name
+        const sysName = theme.systemName || '🎮 莉刻報名系統';
+        const nameEl = document.getElementById('adminSystemName');
+        if (nameEl) nameEl.textContent = sysName;
+        document.title = sysName + ' — 管理後台';
     }
 
     function updateThemeUI(theme) {
@@ -1268,7 +1273,8 @@
             fontSizeTitle: $('#fontSizeTitle').value,
             fontSizeBody: $('#fontSizeBody').value,
             fontSizeChat: $('#fontSizeChat').value,
-            fontSizeLabel: $('#fontSizeLabel').value
+            fontSizeLabel: $('#fontSizeLabel').value,
+            systemName: $('#systemNameInput').value
         };
     }
 
@@ -1277,6 +1283,10 @@
             const theme = await fetch('/api/theme').then(r => r.json());
             updateThemeUI(theme);
             applyTheme(theme);
+            // Populate system name input
+            if ($('#systemNameInput')) {
+                $('#systemNameInput').value = theme.systemName || '';
+            }
         } catch (e) { /* use default */ }
     }
 

@@ -784,6 +784,11 @@
         if (theme.fontSizeBody) root.style.setProperty('--font-size-body', theme.fontSizeBody + 'rem');
         if (theme.fontSizeChat) root.style.setProperty('--font-size-chat', theme.fontSizeChat + 'rem');
         if (theme.fontSizeLabel) root.style.setProperty('--font-size-label', theme.fontSizeLabel + 'rem');
+        // System name
+        const sysName = theme.systemName || '🎮 莉刻報名系統';
+        const nameEl = document.getElementById('userSystemName');
+        if (nameEl) nameEl.textContent = sysName;
+        document.title = sysName;
     }
 
     async function loadTheme() {

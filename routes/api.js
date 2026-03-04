@@ -556,7 +556,8 @@ router.put('/admin/theme', requireAdmin, (req, res) => {
         fontSizeTitle: req.body.fontSizeTitle || '',
         fontSizeBody: req.body.fontSizeBody || '',
         fontSizeChat: req.body.fontSizeChat || '',
-        fontSizeLabel: req.body.fontSizeLabel || ''
+        fontSizeLabel: req.body.fontSizeLabel || '',
+        systemName: req.body.systemName || ''
     };
     db.setSettingValue('theme_settings', JSON.stringify(theme));
 
