@@ -844,14 +844,95 @@
             state.muted = !state.muted;
             localStorage.setItem('queue_muted', state.muted);
             muteBtn.textContent = state.muted ? '🔇' : '🔊';
-            showToast(state.muted ? '🔇 已靜音' : '🔊 已開啟聲音');
+            showToast(state.muted ? t('muted') : t('unmuted'));
         });
     }
 
+    // ─── Language Switching ───────────────────────────────────────────
+    function applyLanguage() {
+        const lang = getLang();
+        document.documentElement.lang = lang === 'zh-TW' ? 'zh-TW' : lang;
+
+        // Update static UI text
+        const statusEl = $('#statusText');
+        if (statusEl && statusEl.textContent === '連線中...' || statusEl && statusEl.textContent === 'Connecting...' || statusEl && statusEl.textContent === '接続中...') {
+            statusEl.textContent = t('connecting');
+        }
+
+        // Chat placeholder
+        const chatInput = document.getElementById('chatInput');
+        if (chatInput) chatInput.placeholder = t('chatPlaceholder');
+
+        // Chat send button
+        const chatSend = document.getElementById('chatSendBtn');
+        if (chatSend) chatSend.textContent = t('sendBtn');
+
+        // Chat tab
+        const chatTabBtns = document.querySelectorAll('.chat-tab[data-tab="messages"]');
+        chatTabBtns.forEach(b => b.textContent = t('chatTab'));
+
+        // Register button
+        const regBtn = document.getElementById('registerSubmit');
+        if (regBtn && !regBtn.disabled) regBtn.innerHTML = t('registerBtn');
+
+        // Closed card
+        const closedTitle = document.querySelector('#closedCard h2');
+        if (closedTitle) closedTitle.textContent = t('closedTitle');
+        const closedMsg = document.querySelector('#closedCard p');
+        if (closedMsg) closedMsg.textContent = t('closedMsg');
+
+        // Lang switcher value
+        const langSwitch = $('#langSwitcher');
+        if (langSwitch) langSwitch.value = lang;
+    }
+
+    // Language switcher handler
+    const langSwitcher = $('#langSwitcher');
+    if (langSwitcher) {
+        langSwitcher.value = getLang();
+        langSwitcher.addEventListener('change', () => {
+            setLang(langSwitcher.value);
+            applyLanguage();
+            loadStatus(); // reload to re-render with new language
+        });
+    }
+
+    // ─── Dark/Light Mode Toggle ───────────────────────────────────────
+    function getPreferredTheme() {
+        const saved = localStorage.getItem('queue_theme');
+        if (saved) return saved;
+        return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    }
+
+    function applyColorTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        const btn = document.getElementById('themeToggleBtn');
+        if (btn) btn.textContent = theme === 'light' ? '☀️' : '🌙';
+    }
+
+    const themeToggle = document.getElementById('themeToggleBtn');
+    if (themeToggle) {
+        themeToggle.addEventListener('click', () => {
+            const current = document.documentElement.getAttribute('data-theme') || 'dark';
+            const next = current === 'dark' ? 'light' : 'dark';
+            localStorage.setItem('queue_theme', next);
+            applyColorTheme(next);
+        });
+    }
+
+    // Listen for system theme changes
+    window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', (e) => {
+        if (!localStorage.getItem('queue_theme')) {
+            applyColorTheme(e.matches ? 'light' : 'dark');
+        }
+    });
+
     // ─── Init ─────────────────────────────────────────────────────────
+    applyColorTheme(getPreferredTheme());
     restoreState();
     loadStatus();
     loadBackground();
     loadTheme();
     requestNotifPermission();
+    applyLanguage();
 })();
