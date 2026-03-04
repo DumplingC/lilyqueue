@@ -241,16 +241,25 @@
                     <h2>聊天室</h2>
                     <button class="btn btn-xs btn-danger" id="clearChatBtn" style="margin-left: auto;">🗑️ 清除對話</button>
                 </div>
-                <div class="chat-messages" id="adminChatMessages" style="height: 400px;">
+                <div style="padding: 8px 10px; border-bottom: 1px solid var(--border-color);">
+                    <div style="display:flex;gap:6px;align-items:center;">
+                        <label style="font-size:0.75rem;color:var(--text-muted);white-space:nowrap;">顯示名稱</label>
+                        <input type="text" class="form-input" id="adminDisplayName" placeholder="🎮 主辦人" maxlength="30"
+                            style="padding:4px 8px;font-size:0.8rem;flex:1;">
+                    </div>
+                </div>
+                <div class="chat-messages" id="adminChatMessages" style="height: 350px;">
                     <div class="empty-state" id="adminChatEmpty">
                         <p style="font-size: 0.8rem;">還沒有訊息</p>
                     </div>
                 </div>
                 <div class="chat-input-row">
+                    <button class="btn btn-ghost emoji-toggle" id="adminEmojiBtn" type="button" title="表情">😊</button>
                     <input type="text" class="form-input" id="adminChatInput" placeholder="以主辦人身份發送訊息..."
                         maxlength="500" autocomplete="off">
                     <button class="btn btn-primary" id="adminChatSendBtn">發送</button>
                 </div>
+                <div class="emoji-picker" id="adminEmojiPicker"></div>
             </div>
         </div>
 
@@ -345,12 +354,10 @@
     </div>
 
     <!-- Crop Modal -->
-    <div id="cropModal"
-        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; display:none; align-items:center; justify-content:center;">
-        <div
-            style="max-width:800px; width:90%; background:var(--bg-card); border-radius:var(--radius-lg); padding:20px; border:1px solid var(--border-color);">
+    <div id="cropModal" class="crop-modal" style="display:none;">
+        <div class="crop-modal-inner">
             <h3 style="margin-bottom:12px;">✂️ 裁切背景圖片</h3>
-            <div style="max-height:500px; overflow:hidden;">
+            <div style="max-height:60vh; overflow:hidden;">
                 <img id="cropImage" style="max-width:100%; display:block;">
             </div>
             <div style="display:flex; gap:10px; margin-top:16px; justify-content:flex-end;">

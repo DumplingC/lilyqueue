@@ -83,12 +83,19 @@ let connectedClients = 0;
 const onlineUsers = new Map(); // socketId -> { gameId, displayName, userStatus }
 
 function broadcastOnlineList() {
+    const session = db.getActiveSession();
     const list = [];
     for (const [, user] of onlineUsers) {
+        let regStatus = 'pending';
+        if (session) {
+            const reg = db.getRegistrationByGameId(session.id, user.gameId);
+            if (reg) regStatus = reg.status || 'pending';
+        }
         list.push({
             gameId: user.gameId,
             displayName: user.displayName,
-            userStatus: user.userStatus || '在線'
+            userStatus: user.userStatus || '在線',
+            regStatus
         });
     }
     io.to('registered').emit('onlineList:updated', list);
@@ -143,7 +150,17 @@ io.on('connection', (socket) => {
         if (data && data.token === validToken) {
             socket.join('admin');
             socket.isAdmin = true;
-            broadcastOnlineList(); // Send current list to new admin
+            if (data.displayName) {
+                socket.adminDisplayName = data.displayName.trim().substring(0, 30);
+            }
+            broadcastOnlineList();
+        }
+    });
+
+    // Admin set custom display name
+    socket.on('admin:set-name', (data) => {
+        if (socket.isAdmin && data && data.name) {
+            socket.adminDisplayName = data.name.trim().replace(/[<>]/g, '').substring(0, 30);
         }
     });
 
@@ -159,7 +176,7 @@ io.on('connection', (socket) => {
 
         if (socket.isAdmin) {
             gameId = 'ADMIN';
-            displayName = '🎮 主辦人';
+            displayName = socket.adminDisplayName || '🎮 主辦人';
             isAdmin = true;
         } else if (socket.gameId) {
             const reg = db.getRegistrationByGameId(session.id, socket.gameId);

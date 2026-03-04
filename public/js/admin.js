@@ -164,7 +164,8 @@
         socket = io({ transports: ['websocket', 'polling'] });
 
         socket.on('connect', () => {
-            socket.emit('join:admin', { token: adminToken });
+            const savedName = localStorage.getItem('admin_display_name');
+            socket.emit('join:admin', { token: adminToken, displayName: savedName || '' });
         });
 
         socket.on('clients:count', (count) => {
@@ -505,6 +506,48 @@
     // ═══════════════════════════════════════════════════════════════════
     const adminChatMessages = $('#adminChatMessages');
     const adminChatInput = $('#adminChatInput');
+
+    // Admin display name
+    const adminNameInput = $('#adminDisplayName');
+    if (adminNameInput) {
+        const savedName = localStorage.getItem('admin_display_name');
+        if (savedName) adminNameInput.value = savedName;
+
+        function updateAdminName() {
+            const name = adminNameInput.value.trim();
+            localStorage.setItem('admin_display_name', name);
+            if (socket) socket.emit('admin:set-name', { name: name || '🎮 主辦人' });
+        }
+        adminNameInput.addEventListener('blur', updateAdminName);
+        adminNameInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') updateAdminName(); });
+    }
+
+    // Admin emoji picker
+    const EMOJIS = ['😀', '😂', '😍', '🤣', '😎', '🤔', '😢', '😡', '👍', '👎', '👋', '🙏', '🎉', '🔥', '❤️', '🎮', '🏆', '⭐', '💪', '🤩', '🙃', '🥱', '😴', '🌟', '👀', '💬', '✅', '❌', '⚠️', '💡'];
+    const adminEmojiBtn = $('#adminEmojiBtn');
+    const adminEmojiPicker = $('#adminEmojiPicker');
+
+    if (adminEmojiBtn && adminEmojiPicker) {
+        adminEmojiPicker.innerHTML = EMOJIS.map(e => `<span class="emoji-item">${e}</span>`).join('');
+
+        adminEmojiBtn.addEventListener('click', () => {
+            adminEmojiPicker.classList.toggle('open');
+        });
+
+        adminEmojiPicker.addEventListener('click', (e) => {
+            if (e.target.classList.contains('emoji-item')) {
+                adminChatInput.value += e.target.textContent;
+                adminChatInput.focus();
+                adminEmojiPicker.classList.remove('open');
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!adminEmojiBtn.contains(e.target) && !adminEmojiPicker.contains(e.target)) {
+                adminEmojiPicker.classList.remove('open');
+            }
+        });
+    }
 
     function addAdminChatMessage(msg) {
         const empty = $('#adminChatEmpty');

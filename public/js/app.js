@@ -334,6 +334,10 @@
     }
 
     // ─── Online List ─────────────────────────────────────────────────────
+    const regStatusLabels = {
+        selected: '正選', waitlist: '備取', pending: '審核中', rejected: '未錄取'
+    };
+
     function updateOnlineList(users) {
         const container = $('#onlineList');
         const badge = $('#onlineCountBadge');
@@ -348,11 +352,13 @@
         let html = '';
         users.forEach(user => {
             const statusIcon = user.userStatus === '在線' ? '🟢' : user.userStatus === '暫離' ? '🟡' : '🔴';
+            const regLabel = regStatusLabels[user.regStatus] || '審核中';
+            const regClass = user.regStatus === 'selected' ? 'reg-selected' : user.regStatus === 'rejected' ? 'reg-rejected' : '';
             html += `
               <div class="online-user">
                 <span class="online-status-icon">${statusIcon}</span>
                 <span class="online-name">${escapeHtml(user.displayName)}</span>
-                <span class="online-user-status">${user.userStatus}</span>
+                <span class="online-reg-tag ${regClass}">${regLabel}</span>
               </div>`;
         });
         container.innerHTML = html;
@@ -410,6 +416,35 @@
     chatInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') sendChat();
     });
+
+    // ─── Emoji Picker ────────────────────────────────────────────────
+    const EMOJIS = ['😀', '😂', '😍', '🤣', '😎', '🤔', '😢', '😡', '👍', '👎', '👋', '🙏', '🎉', '🔥', '❤️', '🎮', '🏆', '⭐', '💪', '🤩', '🙃', '🥱', '😴', '🌟', '👀', '💬', '✅', '❌', '⚠️', '💡'];
+
+    const emojiBtn = $('#emojiBtn');
+    const emojiPicker = $('#emojiPicker');
+
+    if (emojiBtn && emojiPicker) {
+        emojiPicker.innerHTML = EMOJIS.map(e => `<span class="emoji-item">${e}</span>`).join('');
+
+        emojiBtn.addEventListener('click', () => {
+            emojiPicker.classList.toggle('open');
+        });
+
+        emojiPicker.addEventListener('click', (e) => {
+            if (e.target.classList.contains('emoji-item')) {
+                chatInput.value += e.target.textContent;
+                chatInput.focus();
+                emojiPicker.classList.remove('open');
+            }
+        });
+
+        // Close picker when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!emojiBtn.contains(e.target) && !emojiPicker.contains(e.target)) {
+                emojiPicker.classList.remove('open');
+            }
+        });
+    }
 
     // ─── User status selector ─────────────────────────────────────────
     const myUserStatus = $('#myUserStatus');
