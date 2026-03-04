@@ -293,6 +293,16 @@
         }
     });
 
+    $('#attentionAlertBtn').addEventListener('click', async () => {
+        if (!confirm('確定要向所有玩家發送引起注意的音效嗎？')) return;
+        try {
+            await api('/admin/attention', { method: 'POST' });
+            showToast('🔔 已發送注意提醒音效');
+        } catch (e) {
+            showToast(e.message, 'error');
+        }
+    });
+
     $('#resetStatusesBtn').addEventListener('click', async () => {
         if (!confirm('確定要重設所有報名狀態為「審核中」嗎？')) return;
         try {

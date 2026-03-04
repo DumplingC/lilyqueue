@@ -12,7 +12,8 @@
         displayName: null,
         sessionActive: false,
         resultsPublished: false,
-        myStatus: 'pending'
+        myStatus: 'pending',
+        muted: localStorage.getItem('queue_muted') === 'true'
     };
 
     // ─── Browser Notifications ─────────────────────────────────────────
@@ -28,6 +29,46 @@
                 new Notification(title, { body, icon: '🎮', tag: 'lily-queue' });
             } catch (e) { /* mobile might not support */ }
         }
+    }
+
+    // ─── Sound Effects (Web Audio API) ────────────────────────────────
+    let audioCtx = null;
+    function getAudioCtx() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        return audioCtx;
+    }
+
+    function playTone(freq, duration, delay = 0) {
+        const ctx = getAudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = freq;
+        osc.type = 'sine';
+        const startTime = ctx.currentTime + delay;
+        gain.gain.setValueAtTime(0.3, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+        osc.start(startTime);
+        osc.stop(startTime + duration);
+    }
+
+    function playSound(type) {
+        try {
+            if (type === 'chat') {
+                // Short gentle ping
+                playTone(800, 0.15);
+            } else if (type === 'announce') {
+                // Rising two-tone
+                playTone(600, 0.15);
+                playTone(900, 0.2, 0.15);
+            } else if (type === 'alarm') {
+                // Urgent triple-tone alarm
+                playTone(800, 0.2);
+                playTone(1000, 0.2, 0.25);
+                playTone(1200, 0.3, 0.5);
+            }
+        } catch (e) { /* audio not supported */ }
     }
 
     // ─── Socket.IO connection ─────────────────────────────────────────
@@ -567,6 +608,10 @@
 
     socket.on('chat:message', (msg) => {
         addChatMessage(msg);
+        // Play sound if page is in background and not muted
+        if (document.hidden && !state.muted && !msg.isSystem) {
+            playSound('chat');
+        }
     });
 
     socket.on('onlineList:updated', (users) => {
@@ -581,6 +626,13 @@
         banner.classList.add('announcement-flash');
         setTimeout(() => banner.classList.remove('announcement-flash'), 1000);
         sendBrowserNotif('📢 公告', data.message);
+        if (!state.muted) playSound('announce');
+    });
+
+    socket.on('admin:attention', () => {
+        playSound('alarm');
+        sendBrowserNotif('🔔 注意！', '管理員提醒大家準備開始！');
+        showToast('🔔 管理員提醒：準備開始！');
     });
 
     socket.on('user:kicked', () => {
@@ -698,6 +750,19 @@
 
         update();
         countdownInterval = setInterval(update, 1000);
+    }
+
+    // ─── Mute Toggle ──────────────────────────────────────────────────
+    const muteBtn = $('#muteToggleBtn');
+    if (muteBtn) {
+        muteBtn.textContent = state.muted ? '🔇' : '🔊';
+        muteBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            state.muted = !state.muted;
+            localStorage.setItem('queue_muted', state.muted);
+            muteBtn.textContent = state.muted ? '🔇' : '🔊';
+            showToast(state.muted ? '🔇 已靜音' : '🔊 已開啟聲音');
+        });
     }
 
     // ─── Init ─────────────────────────────────────────────────────────

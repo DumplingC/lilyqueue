@@ -625,6 +625,14 @@ router.put('/admin/custom-fields', requireAdmin, (req, res) => {
     res.json({ message: '自訂欄位已儲存', fields: clean });
 });
 
+// ─── Attention Alert ──────────────────────────────────────────────
+router.post('/admin/attention', requireAdmin, (req, res) => {
+    if (req.app.io) {
+        req.app.io.to('registered').emit('admin:attention');
+    }
+    res.json({ message: '已發送注意提醒' });
+});
+
 // ─── Session History ──────────────────────────────────────────────
 router.get('/admin/history', requireAdmin, (req, res) => {
     const sessions = db.getAllSessions();
