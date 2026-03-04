@@ -240,6 +240,12 @@
                 $('#activeSessionView').style.display = 'none';
                 $('#sessionStatusBadge').textContent = '閒置';
                 $('#sessionStatusBadge').className = 'badge badge-closed';
+                // Default start time: today 14:00 (Taipei time)
+                const now = new Date();
+                const taipeiOffset = 8 * 60; // UTC+8
+                const local = new Date(now.getTime() + (taipeiOffset - now.getTimezoneOffset()) * 60000);
+                const today = local.toISOString().split('T')[0];
+                $('#newStartTime').value = today + 'T14:00';
             }
 
             renderRegistrations();
