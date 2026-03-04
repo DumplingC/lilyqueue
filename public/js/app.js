@@ -618,7 +618,8 @@
     const typingIndicator = document.createElement('div');
     typingIndicator.className = 'typing-indicator';
     typingIndicator.style.display = 'none';
-    chatMessages.parentElement.insertBefore(typingIndicator, chatMessages.nextSibling);
+    const chatInputRow = document.querySelector('.chat-input-row');
+    if (chatInputRow) chatInputRow.parentElement.insertBefore(typingIndicator, chatInputRow);
     const typingUsers = new Map();
 
     socket.on('chat:typing', (data) => {
@@ -818,10 +819,11 @@
     }
 
     // ─── Chat Tab Switching ────────────────────────────────────────────
-    document.querySelectorAll('.chat-tab').forEach(tab => {
+    document.querySelectorAll('.chat-tab[data-tab]').forEach(tab => {
         tab.addEventListener('click', () => {
             const target = tab.dataset.tab;
-            document.querySelectorAll('.chat-tab').forEach(t => t.classList.remove('active'));
+            if (!target) return;
+            document.querySelectorAll('.chat-tab[data-tab]').forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
             document.querySelectorAll('.chat-tab-content').forEach(c => c.classList.remove('active'));
             const panel = target === 'messages' ? $('#tabMessages') : $('#tabOnline');
