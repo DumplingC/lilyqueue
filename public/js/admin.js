@@ -672,10 +672,29 @@
         }
     });
 
+    // ─── Client-side image compression to WebP ─────────────────────────
+    function compressToWebP(file, maxWidth = 1920, quality = 0.8) {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let w = img.width, h = img.height;
+                if (w > maxWidth) { h = Math.round(h * maxWidth / w); w = maxWidth; }
+                canvas.width = w;
+                canvas.height = h;
+                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                canvas.toBlob((blob) => resolve(blob), 'image/webp', quality);
+            };
+            img.src = URL.createObjectURL(file);
+        });
+    }
+
     async function uploadBackground(file) {
-        const formData = new FormData();
-        formData.append('background', file);
         try {
+            showToast('正在壓縮圖片...');
+            const webpBlob = await compressToWebP(file);
+            const formData = new FormData();
+            formData.append('background', webpBlob, 'bg.webp');
             const res = await fetch('/api/admin/upload-bg', {
                 method: 'POST',
                 headers: { 'X-Admin-Token': adminToken },
@@ -683,7 +702,7 @@
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error);
-            showToast('背景圖片已上傳');
+            showToast('背景圖片已上傳（WebP 壓縮）');
             showBgPreview(data.url);
         } catch (e) {
             showToast(e.message, 'error');
@@ -709,8 +728,101 @@
         }
     });
 
-    // ─── Crop background image ────────────────────────────────────────
-    let currentCropper = null;
+    // ─── Canvas-based Crop (no external deps) ─────────────────────────
+    const cropCanvas = $('#cropCanvas');
+    const cropCtx = cropCanvas ? cropCanvas.getContext('2d') : null;
+    let cropSourceImg = null;
+    let cropSelection = null; // {x, y, w, h} in image coords
+    let cropDragging = false;
+    let cropStart = null;
+
+    function drawCropCanvas() {
+        if (!cropCtx || !cropSourceImg) return;
+        const cw = cropCanvas.width, ch = cropCanvas.height;
+        cropCtx.clearRect(0, 0, cw, ch);
+        cropCtx.drawImage(cropSourceImg, 0, 0, cw, ch);
+
+        if (cropSelection && cropSelection.w > 0 && cropSelection.h > 0) {
+            // Darken outside selection
+            cropCtx.fillStyle = 'rgba(0,0,0,0.5)';
+            cropCtx.fillRect(0, 0, cw, cropSelection.y); // top
+            cropCtx.fillRect(0, cropSelection.y + cropSelection.h, cw, ch - cropSelection.y - cropSelection.h); // bottom
+            cropCtx.fillRect(0, cropSelection.y, cropSelection.x, cropSelection.h); // left
+            cropCtx.fillRect(cropSelection.x + cropSelection.w, cropSelection.y, cw - cropSelection.x - cropSelection.w, cropSelection.h); // right
+
+            // Selection border
+            cropCtx.strokeStyle = '#fff';
+            cropCtx.lineWidth = 2;
+            cropCtx.setLineDash([6, 3]);
+            cropCtx.strokeRect(cropSelection.x, cropSelection.y, cropSelection.w, cropSelection.h);
+            cropCtx.setLineDash([]);
+
+            // Grid lines (thirds)
+            cropCtx.strokeStyle = 'rgba(255,255,255,0.3)';
+            cropCtx.lineWidth = 1;
+            for (let i = 1; i <= 2; i++) {
+                cropCtx.beginPath();
+                cropCtx.moveTo(cropSelection.x + cropSelection.w * i / 3, cropSelection.y);
+                cropCtx.lineTo(cropSelection.x + cropSelection.w * i / 3, cropSelection.y + cropSelection.h);
+                cropCtx.stroke();
+                cropCtx.beginPath();
+                cropCtx.moveTo(cropSelection.x, cropSelection.y + cropSelection.h * i / 3);
+                cropCtx.lineTo(cropSelection.x + cropSelection.w, cropSelection.y + cropSelection.h * i / 3);
+                cropCtx.stroke();
+            }
+        }
+    }
+
+    function getCanvasPos(e) {
+        const rect = cropCanvas.getBoundingClientRect();
+        const touch = e.touches ? e.touches[0] : e;
+        return {
+            x: (touch.clientX - rect.left) * (cropCanvas.width / rect.width),
+            y: (touch.clientY - rect.top) * (cropCanvas.height / rect.height)
+        };
+    }
+
+    if (cropCanvas) {
+        cropCanvas.addEventListener('mousedown', (e) => {
+            cropDragging = true;
+            cropStart = getCanvasPos(e);
+            cropSelection = { x: cropStart.x, y: cropStart.y, w: 0, h: 0 };
+        });
+        cropCanvas.addEventListener('mousemove', (e) => {
+            if (!cropDragging || !cropStart) return;
+            const pos = getCanvasPos(e);
+            cropSelection = {
+                x: Math.min(cropStart.x, pos.x),
+                y: Math.min(cropStart.y, pos.y),
+                w: Math.abs(pos.x - cropStart.x),
+                h: Math.abs(pos.y - cropStart.y)
+            };
+            drawCropCanvas();
+        });
+        cropCanvas.addEventListener('mouseup', () => { cropDragging = false; });
+        cropCanvas.addEventListener('mouseleave', () => { cropDragging = false; });
+
+        // Touch support
+        cropCanvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            cropDragging = true;
+            cropStart = getCanvasPos(e);
+            cropSelection = { x: cropStart.x, y: cropStart.y, w: 0, h: 0 };
+        });
+        cropCanvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (!cropDragging || !cropStart) return;
+            const pos = getCanvasPos(e);
+            cropSelection = {
+                x: Math.min(cropStart.x, pos.x),
+                y: Math.min(cropStart.y, pos.y),
+                w: Math.abs(pos.x - cropStart.x),
+                h: Math.abs(pos.y - cropStart.y)
+            };
+            drawCropCanvas();
+        });
+        cropCanvas.addEventListener('touchend', () => { cropDragging = false; });
+    }
 
     $('#cropBgBtn').addEventListener('click', () => {
         const previewImg = $('#bgPreviewImg');
@@ -719,64 +831,57 @@
             return;
         }
         const modal = $('#cropModal');
-        const cropImg = $('#cropImage');
-
-        // Destroy previous cropper if any
-        if (currentCropper) {
-            currentCropper.destroy();
-            currentCropper = null;
-        }
-
-        // Show modal first
         modal.style.display = 'flex';
+        cropSelection = null;
 
-        // Clear src and re-set to force onload (handles cached images)
-        cropImg.src = '';
-        setTimeout(() => {
-            cropImg.src = previewImg.src;
-        }, 50);
-
-        cropImg.onload = () => {
-            // Small delay to let DOM layout settle
-            setTimeout(() => {
-                if (currentCropper) {
-                    currentCropper.destroy();
-                }
-                currentCropper = new Cropper(cropImg, {
-                    aspectRatio: NaN,
-                    viewMode: 1,
-                    autoCropArea: 0.8,
-                    responsive: true,
-                    background: true,
-                    guides: true,
-                    center: true,
-                    highlight: true,
-                    cropBoxMovable: true,
-                    cropBoxResizable: true,
-                    toggleDragModeOnDblclick: false
-                });
-            }, 100);
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+            cropSourceImg = img;
+            // Scale canvas to fit modal (max 760px wide) while keeping aspect ratio
+            const maxW = 760;
+            let w = img.width, h = img.height;
+            if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+            cropCanvas.width = w;
+            cropCanvas.height = h;
+            drawCropCanvas();
         };
+        img.src = previewImg.src;
     });
 
     $('#cropCancelBtn').addEventListener('click', () => {
         $('#cropModal').style.display = 'none';
-        if (currentCropper) {
-            currentCropper.destroy();
-            currentCropper = null;
-        }
+        cropSourceImg = null;
+        cropSelection = null;
+    });
+
+    $('#cropResetBtn').addEventListener('click', () => {
+        cropSelection = null;
+        drawCropCanvas();
     });
 
     $('#cropApplyBtn').addEventListener('click', async () => {
-        if (!currentCropper) return;
+        if (!cropSourceImg || !cropSelection || cropSelection.w < 10 || cropSelection.h < 10) {
+            showToast('請先拖曳選取裁切區域', 'error');
+            return;
+        }
         try {
-            const canvas = currentCropper.getCroppedCanvas({
-                maxWidth: 1920,
-                maxHeight: 1080
-            });
-            canvas.toBlob(async (blob) => {
+            // Scale selection back to original image coordinates
+            const scaleX = cropSourceImg.width / cropCanvas.width;
+            const scaleY = cropSourceImg.height / cropCanvas.height;
+            const sx = cropSelection.x * scaleX;
+            const sy = cropSelection.y * scaleY;
+            const sw = cropSelection.w * scaleX;
+            const sh = cropSelection.h * scaleY;
+
+            const outCanvas = document.createElement('canvas');
+            outCanvas.width = Math.min(sw, 1920);
+            outCanvas.height = Math.round(Math.min(sw, 1920) * sh / sw);
+            outCanvas.getContext('2d').drawImage(cropSourceImg, sx, sy, sw, sh, 0, 0, outCanvas.width, outCanvas.height);
+
+            outCanvas.toBlob(async (blob) => {
                 const formData = new FormData();
-                formData.append('background', blob, 'cropped-bg.jpg');
+                formData.append('background', blob, 'cropped-bg.webp');
                 try {
                     const res = await fetch('/api/admin/upload-bg', {
                         method: 'POST',
@@ -790,15 +895,13 @@
                 } catch (e) {
                     showToast(e.message, 'error');
                 }
-            }, 'image/jpeg', 0.9);
+            }, 'image/webp', 0.85);
         } catch (e) {
             showToast('裁切失敗', 'error');
         }
         $('#cropModal').style.display = 'none';
-        if (currentCropper) {
-            currentCropper.destroy();
-            currentCropper = null;
-        }
+        cropSourceImg = null;
+        cropSelection = null;
     });
 
     // Save background settings (position/size)

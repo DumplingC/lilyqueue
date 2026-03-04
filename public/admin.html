@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🎮 管理後台 — 莉刻報名系統</title>
     <link rel="stylesheet" href="/css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
 </head>
 
 <body>
@@ -362,15 +361,19 @@
         </div>
     </div>
 
-    <!-- Crop Modal -->
+    <!-- Crop Modal (canvas-based, no external deps) -->
     <div id="cropModal" class="crop-modal" style="display:none;">
         <div class="crop-modal-inner">
             <h3 style="margin-bottom:12px;">✂️ 裁切背景圖片</h3>
-            <div style="max-height:60vh; overflow:hidden;">
-                <img id="cropImage" style="max-width:100%; display:block;">
+            <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:8px;">拖曳選取裁切區域</p>
+            <div style="position:relative; overflow:hidden; border-radius:8px; border:1px solid var(--border-color);">
+                <canvas id="cropCanvas" style="width:100%; display:block; cursor:crosshair;"></canvas>
+                <div id="cropOverlay"
+                    style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;"></div>
             </div>
             <div style="display:flex; gap:10px; margin-top:16px; justify-content:flex-end;">
                 <button class="btn btn-outline" id="cropCancelBtn">取消</button>
+                <button class="btn btn-outline" id="cropResetBtn">🔄 重選</button>
                 <button class="btn btn-primary" id="cropApplyBtn">✅ 套用裁切</button>
             </div>
         </div>
@@ -383,7 +386,6 @@
     </audio>
 
     <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
     <script src="/js/admin.js"></script>
 </body>
 
