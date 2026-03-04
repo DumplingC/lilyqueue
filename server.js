@@ -26,7 +26,7 @@ app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+            scriptSrc: ["'self'", "'unsafe-inline'"],
             styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
             fontSrc: ["'self'", "https://fonts.gstatic.com"],
             imgSrc: ["'self'", "data:", "blob:"],
@@ -117,6 +117,17 @@ io.on('connection', (socket) => {
             socket.gameId = data.gameId;
             socket.displayName = data.displayName || data.gameId;
             socket.join('registered');
+
+            // Validate: check if this gameId actually registered
+            const session = db.getActiveSession();
+            if (session) {
+                const reg = db.getRegistrationByGameId(session.id, data.gameId);
+                if (!reg) {
+                    socket.leave('registered');
+                    return;
+                }
+            }
+
             onlineUsers.set(socket.id, {
                 gameId: data.gameId,
                 displayName: data.displayName || data.gameId,
@@ -146,6 +157,16 @@ io.on('connection', (socket) => {
             const status = allowed.includes(data.status) ? data.status : '在線';
             onlineUsers.get(socket.id).userStatus = status;
             broadcastOnlineList();
+        }
+    });
+
+    // Typing indicator
+    socket.on('chat:typing', (isTyping) => {
+        if (socket.gameId && onlineUsers.has(socket.id)) {
+            socket.to('registered').emit('chat:typing', {
+                displayName: socket.displayName || socket.gameId,
+                isTyping: !!isTyping
+            });
         }
     });
 

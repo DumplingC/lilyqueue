@@ -340,14 +340,19 @@
                 updateMyStatusUI(data.status);
                 if (prevStatus && prevStatus !== data.status) {
                     const toastMap = {
-                        selected: '🎉 恭喜！您已被錄取為正選',
+                        selected: t('selectedCelebration'),
                         waitlist: '📋 您目前列為備取，請等待最終結果',
                         rejected: '❌ 很抱歉，本次未被錄取',
                         pending: '⏳ 您的審核狀態已變更為等待中'
                     };
                     const msg = toastMap[data.status] || '您的審核狀態已更新';
                     showToast(msg);
-                    sendBrowserNotif('莉刻報名系統', msg);
+                    sendBrowserNotif(t('systemName'), msg);
+                    // Celebration for selected!
+                    if (data.status === 'selected') {
+                        launchConfetti();
+                        setTimeout(() => launchConfetti(), 800);
+                    }
                 }
 
                 // Join chat room
@@ -537,7 +542,8 @@
     const chatEmpty = $('#chatEmpty');
 
     function highlightMentions(text) {
-        return text.replace(/@(\S+)/g, (match, name) => {
+        // Only match @mentions with safe alphanumeric/CJK characters
+        return text.replace(/@([\w\u4e00-\u9fff\u3040-\u30ff]+)/g, (match, name) => {
             const isMe = state.displayName && name === state.displayName;
             return `<span class="mention${isMe ? ' mention-me' : ''}">${match}</span>`;
         });
@@ -592,6 +598,54 @@
     chatInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') sendChat();
     });
+
+    // ─── Typing Indicator ─────────────────────────────────────────────
+    let typingTimeout = null;
+    let isTyping = false;
+    chatInput.addEventListener('input', () => {
+        if (!isTyping && state.registered) {
+            isTyping = true;
+            socket.emit('chat:typing', true);
+        }
+        clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(() => {
+            isTyping = false;
+            socket.emit('chat:typing', false);
+        }, 2000);
+    });
+
+    // Show typing indicator from others
+    const typingIndicator = document.createElement('div');
+    typingIndicator.className = 'typing-indicator';
+    typingIndicator.style.display = 'none';
+    chatMessages.parentElement.insertBefore(typingIndicator, chatMessages.nextSibling);
+    const typingUsers = new Map();
+
+    socket.on('chat:typing', (data) => {
+        if (data.isTyping) {
+            typingUsers.set(data.displayName, Date.now());
+        } else {
+            typingUsers.delete(data.displayName);
+        }
+        const names = [...typingUsers.keys()];
+        if (names.length > 0) {
+            typingIndicator.textContent = names.length === 1
+                ? t('typing', { name: names[0] })
+                : `${names.slice(0, 2).join(', ')} ${t('typing', { name: '' }).replace('{name}', '').trim()}`;
+            typingIndicator.style.display = '';
+        } else {
+            typingIndicator.style.display = 'none';
+        }
+    });
+
+    // Auto-clear stale typing indicators
+    setInterval(() => {
+        const now = Date.now();
+        for (const [name, ts] of typingUsers) {
+            if (now - ts > 5000) typingUsers.delete(name);
+        }
+        if (typingUsers.size === 0) typingIndicator.style.display = 'none';
+    }, 3000);
 
     // ─── Emoji Picker ────────────────────────────────────────────────
     const EMOJIS = ['😀', '😂', '😍', '🤣', '😎', '🤔', '😢', '😡', '👍', '👎', '👋', '🙏', '🎉', '🔥', '❤️', '🎮', '🏆', '⭐', '💪', '🤩', '🙃', '🥱', '😴', '🌟', '👀', '💬', '✅', '❌', '⚠️', '💡'];

@@ -67,7 +67,17 @@ const i18n = {
         closedMsg: '請等待管理員開啟新場次',
         // Capacity
         almostFull: '⚠️ 名額即將額滿！剩餘 {n} 個名額',
-        full: '🈵 名額已滿！'
+        full: '🈵 名額已滿！',
+        // Online status
+        statusOnline: '🟢 在線',
+        statusAway: '🟡 暫離',
+        statusBusy: '🔴 稍等一下',
+        // Typing
+        typing: '{name} 正在輸入...',
+        // Form validation
+        gameIdHint: '英數字 2-50 字元',
+        // Celebration
+        selectedCelebration: '🎉 恭喜！你已被正選錄取！'
     },
     'en': {
         systemName: '🎮 Lily Queue',
@@ -123,7 +133,13 @@ const i18n = {
         closedTitle: '⏸️ Not Currently Open',
         closedMsg: 'Please wait for the admin to start a new session.',
         almostFull: '⚠️ Almost full! Only {n} spot(s) left',
-        full: '🈵 All spots taken!'
+        full: '🈵 All spots taken!',
+        statusOnline: '🟢 Online',
+        statusAway: '🟡 Away',
+        statusBusy: '🔴 Busy',
+        typing: '{name} is typing...',
+        gameIdHint: '2-50 alphanumeric characters',
+        selectedCelebration: '🎉 Congrats! You have been selected!'
     },
     'ja': {
         systemName: '🎮 Lily Queue',
@@ -179,7 +195,13 @@ const i18n = {
         closedTitle: '⏸️ 現在受付を行っていません',
         closedMsg: '管理者が新しいセッションを開始するまでお待ちください。',
         almostFull: '⚠️ まもなく満員！残り{n}枠',
-        full: '🈵 定員に達しました！'
+        full: '🈵 定員に達しました！',
+        statusOnline: '🟢 オンライン',
+        statusAway: '🟡 離席中',
+        statusBusy: '🔴 取り込み中',
+        typing: '{name}が入力中...',
+        gameIdHint: '2〜50文字の英数字',
+        selectedCelebration: '🎉 おめでとうございます！当選しました！'
     }
 };
 
