@@ -471,6 +471,36 @@
                             重設為預設</button>
                     </div>
 
+                    <!-- CAPTCHA & Scheduling -->
+                    <div class="card" style="margin-top:16px;">
+                        <div class="card-header">
+                            <span class="icon">🛡️</span>
+                            <h2>安全與排程</h2>
+                        </div>
+                        <!-- CAPTCHA Toggle -->
+                        <div class="form-group" style="display:flex; align-items:center; gap:8px;">
+                            <label style="flex:1; margin:0;">🧩 防機器人驗證（算術題）</label>
+                            <label class="switch">
+                                <input type="checkbox" id="captchaToggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <hr style="border-color:var(--border-color-light); margin:10px 0;">
+                        <!-- Scheduled Close -->
+                        <div class="form-group">
+                            <label>⏰ 排定自動關閉報名</label>
+                            <input type="datetime-local" id="scheduledClose" class="form-input">
+                        </div>
+                        <!-- Scheduled Open -->
+                        <div class="form-group">
+                            <label>⏰ 排定自動開啟報名</label>
+                            <input type="datetime-local" id="scheduledOpen" class="form-input">
+                        </div>
+                        <button class="btn btn-primary btn-block" id="saveScheduleBtn">💾 儲存排程</button>
+                        <button class="btn btn-outline btn-block" id="clearScheduleBtn"
+                            style="margin-top:4px; font-size:0.75rem;">🗑️ 清除排程</button>
+                    </div>
+
                     <!-- Custom Registration Fields -->
                     <div class="card" style="margin-top:16px;">
                         <div class="card-header">

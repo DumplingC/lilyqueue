@@ -3,6 +3,7 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 const db = require('../db');
 
 // ─── Multer setup for background image upload ─────────────────────
@@ -139,6 +140,18 @@ router.post('/register', (req, res) => {
         return res.status(403).json({ error: '此遊戲 ID 已被禁止報名' });
     }
 
+    // CAPTCHA verification (if enabled)
+    const captchaEnabled = db.getSettingValue('captcha_enabled', 'false') === 'true';
+    if (captchaEnabled) {
+        const { captchaToken, captchaAnswer } = req.body;
+        if (!captchaToken || !captchaAnswer) {
+            return res.status(400).json({ error: '請完成驗證' });
+        }
+        if (!router.verifyCaptcha(captchaToken, captchaAnswer)) {
+            return res.status(400).json({ error: '驗證答案錯誤，請重試' });
+        }
+    }
+
     try {
         const result = db.addRegistration(session.id, gameId, displayName);
         const position = db.getRegistrationCount(session.id);
@@ -155,9 +168,14 @@ router.post('/register', (req, res) => {
             db.runSql('UPDATE registrations SET fingerprint = ? WHERE id = ?', [sanitize(req.body.fingerprint), result.id]);
         }
 
+        // Generate confirmation code
+        const confirmCode = crypto.randomBytes(3).toString('hex').toUpperCase();
+        db.runSql('UPDATE registrations SET extra_data = json_set(COALESCE(extra_data, \'{}\'), \'$.confirmCode\', ?) WHERE id = ?', [confirmCode, result.id]);
+
         const responseData = {
             message: '報名成功！已收到您的報名資料',
             registrationId: result.id,
+            confirmCode,
             position,
             gameId,
             displayName,
@@ -206,6 +224,57 @@ router.post('/register', (req, res) => {
         res.status(500).json({ error: '伺服器錯誤，請稍後再試' });
     }
 });
+
+// ─── Cancel Registration (by user) ────────────────────────────────
+router.delete('/register', (req, res) => {
+    const { gameId, confirmCode } = req.body;
+    if (!gameId || !confirmCode) {
+        return res.status(400).json({ error: '請提供遊戲 ID 和確認碼' });
+    }
+    const session = db.getActiveSession();
+    if (!session) return res.status(400).json({ error: '目前沒有開放報名的場次' });
+
+    const reg = db.getRegistrationByGameId(session.id, gameId);
+    if (!reg) return res.status(404).json({ error: '找不到此報名紀錄' });
+
+    // Verify confirmation code
+    let storedCode = '';
+    try {
+        const extra = JSON.parse(reg.extra_data || '{}');
+        storedCode = extra.confirmCode || '';
+    } catch (e) { }
+    if (storedCode !== confirmCode) {
+        return res.status(403).json({ error: '確認碼不正確' });
+    }
+
+    db.runSql('DELETE FROM registrations WHERE id = ?', [reg.id]);
+    logAudit('cancel', gameId, '用戶自行取消報名');
+
+    if (req.app.io) {
+        req.app.io.emit('registration:cancelled', { gameId });
+    }
+
+    res.json({ message: '已成功取消報名' });
+});
+
+// ─── Simple Math CAPTCHA ──────────────────────────────────────────
+const captchaStore = new Map(); // token -> answer
+router.get('/captcha', (req, res) => {
+    const a = Math.floor(Math.random() * 20) + 1;
+    const b = Math.floor(Math.random() * 20) + 1;
+    const token = crypto.randomBytes(8).toString('hex');
+    captchaStore.set(token, a + b);
+    // Auto-expire after 5 minutes
+    setTimeout(() => captchaStore.delete(token), 5 * 60 * 1000);
+    res.json({ question: `${a} + ${b} = ?`, token });
+});
+
+router.verifyCaptcha = function (token, answer) {
+    if (!captchaStore.has(token)) return false;
+    const correct = captchaStore.get(token);
+    captchaStore.delete(token);
+    return parseInt(answer) === correct;
+};
 
 // Get results (public, after published)
 router.get('/results', (req, res) => {
@@ -817,5 +886,56 @@ router.get('/admin/audit-log', requireAdmin, (req, res) => {
 
 // Export logAudit for use in other parts
 router.logAudit = logAudit;
+
+// ─── CAPTCHA Toggle ───────────────────────────────────────────────
+router.get('/admin/captcha-toggle', requireAdmin, (req, res) => {
+    res.json({ enabled: db.getSettingValue('captcha_enabled', 'false') === 'true' });
+});
+
+router.put('/admin/captcha-toggle', requireAdmin, (req, res) => {
+    const enabled = req.body.enabled ? 'true' : 'false';
+    db.setSettingValue('captcha_enabled', enabled);
+    logAudit('setting', 'captcha', `驗證碼 ${enabled === 'true' ? '開啟' : '關閉'}`);
+    res.json({ enabled: enabled === 'true' });
+});
+
+// CAPTCHA status (public — client needs to know if CAPTCHA is required)
+router.get('/captcha-status', (req, res) => {
+    res.json({ enabled: db.getSettingValue('captcha_enabled', 'false') === 'true' });
+});
+
+// ─── Scheduled Open/Close ─────────────────────────────────────────
+router.get('/admin/schedule', requireAdmin, (req, res) => {
+    res.json({
+        scheduledOpen: db.getSettingValue('scheduled_open', ''),
+        scheduledOpenData: JSON.parse(db.getSettingValue('scheduled_open_data', '{}')),
+        scheduledClose: db.getSettingValue('scheduled_close', '')
+    });
+});
+
+router.put('/admin/schedule', requireAdmin, (req, res) => {
+    const { scheduledOpen, scheduledClose, openTitle, openMainSlots, openWaitlistSlots } = req.body;
+
+    if (scheduledOpen) {
+        db.setSettingValue('scheduled_open', scheduledOpen);
+        db.setSettingValue('scheduled_open_data', JSON.stringify({
+            title: openTitle || '自動場次',
+            mainSlots: parseInt(openMainSlots) || 4,
+            waitlistSlots: parseInt(openWaitlistSlots) || 2
+        }));
+        logAudit('schedule', 'open', `排定自動開啟：${scheduledOpen}`);
+    } else {
+        db.setSettingValue('scheduled_open', '');
+    }
+
+    if (scheduledClose) {
+        db.setSettingValue('scheduled_close', scheduledClose);
+        logAudit('schedule', 'close', `排定自動關閉：${scheduledClose}`);
+    } else {
+        db.setSettingValue('scheduled_close', '');
+    }
+
+    res.json({ message: '排程已設定' });
+});
 
 module.exports = router;

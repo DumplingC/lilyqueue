@@ -303,6 +303,52 @@ start().catch(err => {
     process.exit(1);
 });
 
+// ─── Scheduled Auto-Open/Close ────────────────────────────────────
+setInterval(() => {
+    try {
+        const now = new Date(db.taipeiNow().replace(' ', 'T') + '+08:00');
+
+        // Check scheduled close
+        const closeTime = db.getSettingValue('scheduled_close', '');
+        if (closeTime) {
+            const closeDate = new Date(closeTime);
+            if (now >= closeDate) {
+                const session = db.getActiveSession();
+                if (session) {
+                    db.endSession(session.id);
+                    db.setSettingValue('scheduled_close', '');
+                    io.emit('session:ended');
+                    console.log('⏰ 已自動結束報名場次');
+                }
+            }
+        }
+
+        // Check scheduled open
+        const openTime = db.getSettingValue('scheduled_open', '');
+        const openData = db.getSettingValue('scheduled_open_data', '{}');
+        if (openTime) {
+            const openDate = new Date(openTime);
+            if (now >= openDate) {
+                const session = db.getActiveSession();
+                if (!session) {
+                    try {
+                        const data = JSON.parse(openData);
+                        db.createSession(
+                            data.title || '自動場次',
+                            data.mainSlots || 4,
+                            data.waitlistSlots || 2
+                        );
+                        db.setSettingValue('scheduled_open', '');
+                        db.setSettingValue('scheduled_open_data', '{}');
+                        io.emit('session:created');
+                        console.log('⏰ 已自動開啟報名場次');
+                    } catch (e) { /* ignore */ }
+                }
+            }
+        }
+    } catch (e) { /* ignore */ }
+}, 30 * 1000); // Check every 30 seconds
+
 // Graceful shutdown
 process.on('SIGINT', () => {
     console.log('\n正在關閉系統...');

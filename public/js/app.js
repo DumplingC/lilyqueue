@@ -164,6 +164,7 @@
                     state.registered = true;
                     state.gameId = parsed.gameId;
                     state.displayName = parsed.displayName;
+                    state.confirmCode = parsed.confirmCode || null;
                 }
             } catch (e) { /* ignore */ }
         }
@@ -172,7 +173,8 @@
     function saveState() {
         sessionStorage.setItem('queue_state', JSON.stringify({
             gameId: state.gameId,
-            displayName: state.displayName
+            displayName: state.displayName,
+            confirmCode: state.confirmCode || null
         }));
     }
 
@@ -400,6 +402,57 @@
         container.innerHTML = html;
     }
 
+    // ─── CAPTCHA ──────────────────────────────────────────────────────
+    async function loadCaptcha() {
+        try {
+            const statusRes = await fetch('/api/captcha-status');
+            const statusData = await statusRes.json();
+            const captchaGroup = $('#captchaGroup');
+            if (!captchaGroup) return;
+            if (!statusData.enabled) {
+                captchaGroup.style.display = 'none';
+                return;
+            }
+            const res = await fetch('/api/captcha');
+            const data = await res.json();
+            captchaGroup.style.display = '';
+            $('#captchaQuestion').textContent = data.question;
+            $('#captchaToken').value = data.token;
+            $('#captchaAnswer').value = '';
+        } catch (e) { /* ignore */ }
+    }
+
+    // ─── Cancel Registration ──────────────────────────────────────────
+    const cancelRegBtn = $('#cancelRegBtn');
+    if (cancelRegBtn) {
+        cancelRegBtn.addEventListener('click', async () => {
+            if (!confirm('確定要取消報名嗎？取消後需重新報名。')) return;
+            try {
+                const res = await fetch('/api/register', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        gameId: state.gameId,
+                        confirmCode: state.confirmCode
+                    })
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    showToast(data.error || '取消失敗', 'error');
+                    return;
+                }
+                showToast('✅ 已成功取消報名');
+                state.registered = false;
+                state.gameId = null;
+                state.confirmCode = null;
+                sessionStorage.removeItem('queue_state');
+                loadStatus();
+            } catch (e) {
+                showToast('取消失敗', 'error');
+            }
+        });
+    }
+
     // ─── Registration form ────────────────────────────────────────────
     registerForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -407,8 +460,18 @@
         const displayName = displayNameInput.value.trim();
 
         if (!gameId) {
-            showToast('請輸入遊戲 ID', 'error');
+            showToast(t('enterGameId'), 'error');
             return;
+        }
+
+        // CAPTCHA check
+        const captchaGroup = $('#captchaGroup');
+        if (captchaGroup && captchaGroup.style.display !== 'none') {
+            const answer = $('#captchaAnswer').value;
+            if (!answer) {
+                showToast('請輸入驗證答案', 'error');
+                return;
+            }
         }
 
         submitBtn.disabled = true;
@@ -421,17 +484,26 @@
                 extraData[el.dataset.name] = el.value.trim();
             });
 
+            const body = { gameId, displayName, extraData, fingerprint: browserFingerprint };
+            // Add CAPTCHA if visible
+            const captchaGroup = $('#captchaGroup');
+            if (captchaGroup && captchaGroup.style.display !== 'none') {
+                body.captchaToken = $('#captchaToken').value;
+                body.captchaAnswer = $('#captchaAnswer').value;
+            }
+
             const res = await fetch('/api/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ gameId, displayName, extraData, fingerprint: browserFingerprint })
+                body: JSON.stringify(body)
             });
             const data = await res.json();
 
             if (!res.ok) {
-                showToast(data.error || '報名失敗', 'error');
+                showToast(data.error || t('registerFail'), 'error');
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = '<span>🚀</span> 確認報名';
+                submitBtn.innerHTML = '<span>🚀</span> ' + t('registerBtn').replace('🚀 ', '');
+                loadCaptcha(); // Refresh CAPTCHA on error
                 return;
             }
 
@@ -453,8 +525,22 @@
                 $('#lateWarning').style.display = '';
             }
 
-            showToast('報名資料已送出，等待管理員審核');
+            showToast(t('registerSuccess'));
             launchConfetti();
+
+            // Show confirmation code
+            if (data.confirmCode) {
+                state.confirmCode = data.confirmCode;
+                saveState();
+                const codeDisplay = $('#confirmCodeDisplay');
+                const codeValue = $('#confirmCodeValue');
+                if (codeDisplay && codeValue) {
+                    codeValue.textContent = data.confirmCode;
+                    codeDisplay.style.display = '';
+                }
+                const cancelBtn = $('#cancelRegBtn');
+                if (cancelBtn) cancelBtn.style.display = '';
+            }
 
             // Join chat
             socket.emit('join:registered', { gameId: state.gameId, displayName: state.displayName });
@@ -996,6 +1082,19 @@
     loadStatus();
     loadBackground();
     loadTheme();
+    loadCaptcha();
     requestNotifPermission();
     applyLanguage();
+
+    // Restore confirmCode display on reload
+    if (state.confirmCode) {
+        const codeDisplay = $('#confirmCodeDisplay');
+        const codeValue = $('#confirmCodeValue');
+        const cancelBtn = $('#cancelRegBtn');
+        if (codeDisplay && codeValue) {
+            codeValue.textContent = state.confirmCode;
+            codeDisplay.style.display = '';
+        }
+        if (cancelBtn) cancelBtn.style.display = '';
+    }
 })();

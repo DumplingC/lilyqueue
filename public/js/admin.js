@@ -1678,11 +1678,74 @@
         enableDragReorder();
     };
 
+    // ═══════════════════════════════════════════════════════════════════
+    // CAPTCHA TOGGLE
+    // ═══════════════════════════════════════════════════════════════════
+    const captchaToggle = $('#captchaToggle');
+    async function loadCaptchaToggle() {
+        try {
+            const data = await api('/admin/captcha-toggle');
+            if (captchaToggle) captchaToggle.checked = data.enabled;
+        } catch (e) { /* ignore */ }
+    }
+    if (captchaToggle) {
+        captchaToggle.addEventListener('change', async () => {
+            try {
+                await api('/admin/captcha-toggle', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}` },
+                    body: JSON.stringify({ enabled: captchaToggle.checked })
+                });
+                showToast(captchaToggle.checked ? '🧩 驗證碼已開啟' : '🧩 驗證碼已關閉');
+            } catch (e) { showToast(e.message, 'error'); }
+        });
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // SCHEDULING
+    // ═══════════════════════════════════════════════════════════════════
+    async function loadSchedule() {
+        try {
+            const data = await api('/admin/schedule');
+            if (data.scheduledOpen) $('#scheduledOpen').value = data.scheduledOpen.slice(0, 16);
+            if (data.scheduledClose) $('#scheduledClose').value = data.scheduledClose.slice(0, 16);
+        } catch (e) { /* ignore */ }
+    }
+
+    $('#saveScheduleBtn').addEventListener('click', async () => {
+        try {
+            await api('/admin/schedule', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}` },
+                body: JSON.stringify({
+                    scheduledOpen: $('#scheduledOpen').value || '',
+                    scheduledClose: $('#scheduledClose').value || ''
+                })
+            });
+            showToast('⏰ 排程已儲存');
+        } catch (e) { showToast(e.message, 'error'); }
+    });
+
+    $('#clearScheduleBtn').addEventListener('click', async () => {
+        try {
+            await api('/admin/schedule', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}` },
+                body: JSON.stringify({ scheduledOpen: '', scheduledClose: '' })
+            });
+            $('#scheduledOpen').value = '';
+            $('#scheduledClose').value = '';
+            showToast('🗑️ 排程已清除');
+        } catch (e) { showToast(e.message, 'error'); }
+    });
+
     // ─── Init ─────────────────────────────────────────────────────────
     checkAuth();
     loadTheme();
     loadCustomFields();
     loadTemplateInfo();
     loadDashboardStats();
+    loadCaptchaToggle();
+    loadSchedule();
 
 })();
