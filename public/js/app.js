@@ -358,16 +358,35 @@
         if (chatEmpty) chatEmpty.style.display = 'none';
 
         const div = document.createElement('div');
-        div.className = `chat-msg ${msg.isAdmin ? 'is-admin' : ''}`;
-        div.innerHTML = `
-      <div class="chat-meta">
-        <span class="chat-name">${escapeHtml(msg.displayName)}</span>
-        <span class="chat-time">${formatTime(msg.sentAt)}</span>
-      </div>
-      <div class="chat-text">${escapeHtml(msg.message)}</div>
-    `;
+        const isSystem = msg.isSystem || msg.gameId === 'SYSTEM';
+        div.className = `chat-msg ${msg.isAdmin ? 'is-admin' : ''} ${isSystem ? 'is-system' : ''}`;
+
+        if (isSystem) {
+            div.innerHTML = `<div class="chat-system-text">${escapeHtml(msg.message)}</div>`;
+        } else {
+            div.innerHTML = `
+          <div class="chat-meta">
+            <span class="chat-name">${escapeHtml(msg.displayName)}</span>
+            <span class="chat-time">${formatTime(msg.sentAt || msg.sent_at)}</span>
+          </div>
+          <div class="chat-text">${escapeHtml(msg.message)}</div>
+        `;
+        }
         chatMessages.appendChild(div);
         chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    async function loadChatHistory() {
+        try {
+            const res = await fetch('/api/chat');
+            const data = await res.json();
+            chatMessages.innerHTML = '';
+            if (data.messages && data.messages.length > 0) {
+                data.messages.forEach(msg => addChatMessage(msg));
+            } else {
+                chatMessages.innerHTML = `<div class="empty-state" id="chatEmpty"><p style="font-size: 0.8rem;">還沒有訊息，來打個招呼吧！</p></div>`;
+            }
+        } catch (e) { /* ignore */ }
     }
 
     function sendChat() {
@@ -396,6 +415,7 @@
         loadBackground();
         if (state.registered && state.gameId) {
             socket.emit('join:registered', { gameId: state.gameId, displayName: state.displayName });
+            loadChatHistory();
         }
     });
 
@@ -450,6 +470,10 @@
         banner.style.display = '';
         banner.classList.add('announcement-flash');
         setTimeout(() => banner.classList.remove('announcement-flash'), 1000);
+    });
+
+    socket.on('chat:cleared', () => {
+        chatMessages.innerHTML = `<div class="empty-state" id="chatEmpty"><p style="font-size: 0.8rem;">對話紀錄已被管理員清除</p></div>`;
     });
 
     // ─── Utilities ────────────────────────────────────────────────────

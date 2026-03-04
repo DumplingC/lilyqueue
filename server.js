@@ -111,6 +111,19 @@ io.on('connection', (socket) => {
                 userStatus: '在線'
             });
             broadcastOnlineList();
+
+            // System join message
+            const joinMsg = {
+                id: 0,
+                gameId: 'SYSTEM',
+                displayName: '系統',
+                message: `📥 ${data.displayName || data.gameId} 加入了聊天室`,
+                isAdmin: false,
+                isSystem: true,
+                sentAt: db.taipeiNow()
+            };
+            io.to('registered').emit('chat:message', joinMsg);
+            io.to('admin').emit('chat:message', joinMsg);
         }
     });
 
@@ -177,8 +190,22 @@ io.on('connection', (socket) => {
         connectedClients = Math.max(0, connectedClients - 1);
         io.emit('clients:count', connectedClients);
         if (onlineUsers.has(socket.id)) {
+            const user = onlineUsers.get(socket.id);
             onlineUsers.delete(socket.id);
             broadcastOnlineList();
+
+            // System leave message
+            const leaveMsg = {
+                id: 0,
+                gameId: 'SYSTEM',
+                displayName: '系統',
+                message: `📤 ${user.displayName} 離開了聊天室`,
+                isAdmin: false,
+                isSystem: true,
+                sentAt: db.taipeiNow()
+            };
+            io.to('registered').emit('chat:message', leaveMsg);
+            io.to('admin').emit('chat:message', leaveMsg);
         }
     });
 });

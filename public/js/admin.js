@@ -193,6 +193,10 @@
             addAdminChatMessage(msg);
         });
 
+        socket.on('chat:cleared', () => {
+            adminChatMessages.innerHTML = '<div class="empty-state" id="adminChatEmpty"><p style="font-size: 0.8rem;">對話紀錄已清除</p></div>';
+        });
+
         socket.on('background:updated', (data) => {
             if (data.url) {
                 document.body.style.backgroundImage = `url(${data.url})`;
@@ -472,14 +476,20 @@
         if (empty) empty.style.display = 'none';
 
         const div = document.createElement('div');
-        div.className = `chat-msg ${msg.isAdmin ? 'is-admin' : ''}`;
-        div.innerHTML = `
-      <div class="chat-meta">
-        <span class="chat-name">${escapeHtml(msg.displayName)}</span>
-        <span class="chat-time">${formatTime(msg.sentAt)}</span>
-      </div>
-      <div class="chat-text">${escapeHtml(msg.message)}</div>
-    `;
+        const isSystem = msg.isSystem || msg.gameId === 'SYSTEM';
+        div.className = `chat-msg ${msg.isAdmin ? 'is-admin' : ''} ${isSystem ? 'is-system' : ''}`;
+
+        if (isSystem) {
+            div.innerHTML = `<div class="chat-system-text">${escapeHtml(msg.message)}</div>`;
+        } else {
+            div.innerHTML = `
+          <div class="chat-meta">
+            <span class="chat-name">${escapeHtml(msg.displayName)}</span>
+            <span class="chat-time">${formatTime(msg.sentAt)}</span>
+          </div>
+          <div class="chat-text">${escapeHtml(msg.message)}</div>
+        `;
+        }
         adminChatMessages.appendChild(div);
         adminChatMessages.scrollTop = adminChatMessages.scrollHeight;
     }
@@ -494,6 +504,17 @@
     $('#adminChatSendBtn').addEventListener('click', sendAdminChat);
     adminChatInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') sendAdminChat();
+    });
+
+    // Clear chat
+    $('#clearChatBtn').addEventListener('click', async () => {
+        if (!confirm('確定要清除所有對話紀錄嗎？')) return;
+        try {
+            await api('/admin/chat', { method: 'DELETE' });
+            showToast('對話紀錄已清除');
+        } catch (e) {
+            showToast(e.message, 'error');
+        }
     });
 
     // Load existing chat messages

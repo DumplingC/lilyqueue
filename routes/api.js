@@ -425,7 +425,17 @@ router.delete('/admin/background', requireAdmin, (req, res) => {
     res.json({ message: '背景圖片已移除' });
 });
 
-// Get chat messages
+// Get chat messages (public, for registered users)
+router.get('/chat', (req, res) => {
+    const session = db.getActiveSession();
+    if (!session) {
+        return res.json({ messages: [] });
+    }
+    const messages = db.getChatMessages(session.id);
+    res.json({ messages });
+});
+
+// Get chat messages (admin)
 router.get('/admin/chat', requireAdmin, (req, res) => {
     const session = db.getActiveSession();
     if (!session) {
@@ -433,6 +443,19 @@ router.get('/admin/chat', requireAdmin, (req, res) => {
     }
     const messages = db.getChatMessages(session.id);
     res.json({ messages });
+});
+
+// Clear chat messages (admin)
+router.delete('/admin/chat', requireAdmin, (req, res) => {
+    const session = db.getActiveSession();
+    if (session) {
+        db.clearChatMessages(session.id);
+    }
+    if (req.app.io) {
+        req.app.io.to('registered').emit('chat:cleared');
+        req.app.io.to('admin').emit('chat:cleared');
+    }
+    res.json({ message: '對話紀錄已清除' });
 });
 
 // Reset admin password

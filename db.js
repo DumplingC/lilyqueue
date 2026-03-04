@@ -342,6 +342,10 @@ function getChatMessages(sessionId, limit = 100) {
   );
 }
 
+function clearChatMessages(sessionId) {
+  runSql('DELETE FROM chat_messages WHERE session_id = ?', [sessionId]);
+}
+
 // ─── Cleanup ───────────────────────────────────────────────────────
 function closeDatabase() {
   if (db) {
@@ -375,5 +379,6 @@ module.exports = {
   getAllLateRecords,
   addChatMessage,
   getChatMessages,
+  clearChatMessages,
   closeDatabase
 };
