@@ -358,15 +358,18 @@
           <td>${escapeHtml(reg.display_name)}</td>
           <td class="timestamp">${formatTime(reg.registered_at)}</td>
           <td>
-            <select class="status-select" data-reg-id="${reg.id}" onchange="window._changeStatus(${reg.id}, this.value)">
-              <option value="pending" ${reg.status === 'pending' ? 'selected' : ''}>⏳ 等待</option>
-              <option value="selected" ${reg.status === 'selected' ? 'selected' : ''}>✅ 正選</option>
-              <option value="waitlist" ${reg.status === 'waitlist' ? 'selected' : ''}>📋 備取</option>
-              <option value="rejected" ${reg.status === 'rejected' ? 'selected' : ''}>❌ 未錄取</option>
-            </select>
+            <div style="display:flex;gap:4px;align-items:center;">
+              <select class="status-select" data-reg-id="${reg.id}" style="flex:1;">
+                <option value="pending" ${reg.status === 'pending' ? 'selected' : ''}>⏳ 等待</option>
+                <option value="selected" ${reg.status === 'selected' ? 'selected' : ''}>✅ 正選</option>
+                <option value="waitlist" ${reg.status === 'waitlist' ? 'selected' : ''}>📋 備取</option>
+                <option value="rejected" ${reg.status === 'rejected' ? 'selected' : ''}>❌ 未錄取</option>
+              </select>
+              <button class="btn btn-xs btn-success apply-status-btn" data-reg-id="${reg.id}" title="套用">✓</button>
+            </div>
           </td>
           <td>
-            <button class="btn btn-xs btn-outline" onclick="window._markLate('${escapeHtml(reg.game_id)}', '${escapeHtml(reg.display_name)}')" title="標記遲到">
+            <button class="btn btn-xs btn-outline mark-late-btn" data-game-id="${escapeHtml(reg.game_id)}" data-display-name="${escapeHtml(reg.display_name)}" title="標記遲到">
               ⚠️
             </button>
           </td>
@@ -376,22 +379,53 @@
 
         html += '</tbody></table>';
         container.innerHTML = html;
-    }
 
-    // Global functions for inline handlers
-    window._changeStatus = async function (regId, status) {
-        const statusLabels = { pending: '⏳ 等待', selected: '✅ 正選', waitlist: '📋 備取', rejected: '❌ 未錄取' };
-        try {
-            await api('/admin/select', {
-                method: 'POST',
-                body: { registrationId: regId, status }
+        // Attach event listeners via delegation
+        container.querySelectorAll('.apply-status-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const regId = parseInt(btn.dataset.regId);
+                const select = container.querySelector(`select[data-reg-id="${regId}"]`);
+                if (!select) return;
+                const status = select.value;
+                const statusLabels = { pending: '⏳ 等待', selected: '✅ 正選', waitlist: '📋 備取', rejected: '❌ 未錄取' };
+                btn.disabled = true;
+                btn.textContent = '...';
+                try {
+                    await api('/admin/select', {
+                        method: 'POST',
+                        body: { registrationId: regId, status }
+                    });
+                    showToast(`已更新為 ${statusLabels[status] || status}`);
+                    btn.textContent = '✓';
+                    btn.disabled = false;
+                } catch (e) {
+                    showToast(e.message, 'error');
+                    btn.textContent = '✓';
+                    btn.disabled = false;
+                    loadSessionData();
+                }
             });
-            showToast(`已更新為 ${statusLabels[status] || status}`);
-        } catch (e) {
-            showToast(e.message, 'error');
-            loadSessionData();
-        }
-    };
+        });
+
+        container.querySelectorAll('.mark-late-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const gameId = btn.dataset.gameId;
+                const displayName = btn.dataset.displayName;
+                if (!confirm(`確定要標記 ${displayName || gameId} 為遲到嗎？`)) return;
+                try {
+                    await api(`/admin/late/${encodeURIComponent(gameId)}`, {
+                        method: 'POST',
+                        body: { displayName }
+                    });
+                    showToast(`已標記 ${gameId} 為遲到`);
+                    loadSessionData();
+                    loadLateRecords();
+                } catch (e) {
+                    showToast(e.message, 'error');
+                }
+            });
+        });
+    }
 
     window._markLate = async function (gameId, displayName) {
         if (!confirm(`確定要標記 ${displayName || gameId} 為遲到嗎？`)) return;

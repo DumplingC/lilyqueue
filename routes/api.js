@@ -297,11 +297,14 @@ router.post('/admin/select', requireAdmin, (req, res) => {
         return res.status(400).json({ error: '無效的參數' });
     }
     db.updateRegistrationStatus(registrationId, status);
+    console.log(`[STATUS] Registration #${registrationId} -> ${status}`);
 
     const session = db.getActiveSession();
     if (req.app.io && session) {
         const regs = db.getRegistrations(session.id);
+        // Emit to all connected sockets (registered users + admins + anyone)
         req.app.io.emit('registrations:updated', { registrations: regs });
+        console.log(`[EMIT] registrations:updated sent to all sockets (${regs.length} registrations)`);
     }
 
     res.json({ message: '狀態已更新' });

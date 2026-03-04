@@ -443,6 +443,7 @@
     });
 
     socket.on('registrations:updated', () => {
+        console.log('[SOCKET] registrations:updated received, registered=', state.registered);
         if (state.registered) checkMyStatus();
         loadStatus();
     });
