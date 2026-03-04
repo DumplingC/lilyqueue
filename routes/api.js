@@ -598,6 +598,60 @@ router.post('/admin/reset-password', requireAdmin, (req, res) => {
     res.json({ message: '密碼已更新' });
 });
 
+// ─── Session History ──────────────────────────────────────────────
+router.get('/admin/history', requireAdmin, (req, res) => {
+    const sessions = db.getAllSessions();
+    const result = sessions.map(s => ({
+        ...s,
+        regCount: db.getRegistrationCount(s.id)
+    }));
+    res.json({ sessions: result });
+});
+
+router.get('/admin/history/:id/registrations', requireAdmin, (req, res) => {
+    const sessionId = parseInt(req.params.id);
+    const regs = db.getRegistrations(sessionId);
+    res.json({ registrations: regs });
+});
+
+// ─── CSV Export ───────────────────────────────────────────────────
+router.get('/admin/export-csv', requireAdmin, (req, res) => {
+    const session = db.getActiveSession();
+    if (!session) return res.status(400).json({ error: '沒有活躍場次' });
+
+    const regs = db.getRegistrations(session.id);
+    const statusMap = { pending: '審核中', selected: '正選', waitlist: '備取', rejected: '未錄取' };
+
+    // BOM for UTF-8 Excel compatibility
+    let csv = '\ufeff序號,遊戲ID,顯示名稱,狀態,報名時間,遲到\n';
+    regs.forEach((r, i) => {
+        csv += `${i + 1},"${r.game_id}","${r.display_name}",${statusMap[r.status] || r.status},"${r.registered_at}",${r.is_late_flagged ? '是' : '否'}\n`;
+    });
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="registrations_${session.id}.csv"`);
+    res.send(csv);
+});
+
+// ─── Private Message ──────────────────────────────────────────────
+router.post('/admin/private-message', requireAdmin, (req, res) => {
+    const { gameId, message } = req.body;
+    if (!gameId || !message) return res.status(400).json({ error: '缺少 gameId 或 message' });
+
+    if (req.app.io) {
+        for (const [, socket] of req.app.io.sockets.sockets) {
+            if (socket.gameId === gameId) {
+                socket.emit('admin:private-message', {
+                    message: message.trim().substring(0, 500),
+                    sentAt: db.taipeiNow()
+                });
+                break;
+            }
+        }
+    }
+    res.json({ message: '私訊已發送' });
+});
+
 // ─── Kick / Ban ───────────────────────────────────────────────────
 router.post('/admin/kick', requireAdmin, (req, res) => {
     const { gameId } = req.body;

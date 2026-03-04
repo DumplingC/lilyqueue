@@ -54,6 +54,7 @@
             <button class="tab active" data-tab="session">📋 場次管理</button>
             <button class="tab" data-tab="registrations">👥 報名列表</button>
             <button class="tab" data-tab="chat">💬 聊天室</button>
+            <button class="tab" data-tab="history">📊 歷史</button>
             <button class="tab" data-tab="settings">⚙️ 設定</button>
         </div>
 
@@ -235,6 +236,8 @@
                     <span class="icon">👥</span>
                     <h2>報名列表</h2>
                     <span class="badge badge-open" id="regCountBadge">0 人</span>
+                    <button class="btn btn-xs btn-outline" id="exportCsvBtn" title="匯出 CSV" style="margin-left:auto;">📥
+                        匯出</button>
                 </div>
                 <div id="registrationsList">
                     <div class="empty-state">
@@ -272,6 +275,21 @@
                     <button class="btn btn-primary" id="adminChatSendBtn">發送</button>
                 </div>
                 <div class="emoji-picker" id="adminEmojiPicker"></div>
+            </div>
+        </div>
+
+        <!-- Tab: History -->
+        <div class="tab-content" id="tab-history">
+            <div class="card">
+                <div class="card-header">
+                    <span class="icon">📊</span>
+                    <h2>場次歷史紀錄</h2>
+                </div>
+                <div id="sessionHistoryList">
+                    <div class="empty-state">
+                        <p style="font-size:0.85rem;">載入中...</p>
+                    </div>
+                </div>
             </div>
         </div>
 

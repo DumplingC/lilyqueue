@@ -398,6 +398,7 @@
               <button class="btn btn-xs btn-outline mark-late-btn" data-game-id="${escapeHtml(reg.game_id)}" data-display-name="${escapeHtml(reg.display_name)}" title="標記遲到">⚠️</button>
               <button class="btn btn-xs btn-outline kick-btn" data-game-id="${escapeHtml(reg.game_id)}" title="踢除">🚪</button>
               <button class="btn btn-xs btn-outline ban-btn" data-game-id="${escapeHtml(reg.game_id)}" title="封禁" style="color:var(--accent-danger);">🚫</button>
+              <button class="btn btn-xs btn-outline pm-btn" data-game-id="${escapeHtml(reg.game_id)}" title="私訊">💬</button>
             </div>
           </td>
         </tr>
@@ -478,7 +479,101 @@
                 }
             });
         });
+
+        container.querySelectorAll('.pm-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const gameId = btn.dataset.gameId;
+                const msg = prompt(`輸入要私訊給 ${gameId} 的訊息：`);
+                if (!msg) return;
+                try {
+                    await api('/admin/private-message', { method: 'POST', body: { gameId, message: msg } });
+                    showToast(`已發送私訊給 ${gameId}`);
+                } catch (e) {
+                    showToast(e.message, 'error');
+                }
+            });
+        });
     }
+
+    // ─── CSV Export ───────────────────────────────────────────────────
+    $('#exportCsvBtn').addEventListener('click', () => {
+        window.open(`/api/admin/export-csv?token=${adminToken}`, '_blank');
+    });
+
+    // ─── Session History ──────────────────────────────────────────────
+    async function loadSessionHistory() {
+        try {
+            const data = await api('/admin/history');
+            const container = $('#sessionHistoryList');
+
+            if (!data.sessions || data.sessions.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p style="font-size:0.85rem;">尚無場次紀錄</p></div>';
+                return;
+            }
+
+            const statusMap = { open: '🟢 進行中', closed: '🔴 已關閉' };
+            let html = '';
+            data.sessions.forEach(s => {
+                html += `
+                <div class="card" style="margin-bottom:8px; padding:12px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+                        <div>
+                            <strong>${escapeHtml(s.title || '未命名場次')}</strong>
+                            <span style="font-size:0.75rem; color:var(--text-muted); margin-left:8px;">#${s.id}</span>
+                        </div>
+                        <div style="display:flex; gap:6px; align-items:center;">
+                            <span style="font-size:0.75rem;">${statusMap[s.status] || s.status}</span>
+                            <span style="font-size:0.75rem; color:var(--text-muted);">${s.regCount} 人</span>
+                            <button class="btn btn-xs btn-outline expand-history-btn" data-session-id="${s.id}">📋 詳情</button>
+                        </div>
+                    </div>
+                    <div style="font-size:0.72rem; color:var(--text-muted); margin-top:4px;">
+                        建立：${s.created_at || '-'} ${s.closed_at ? `| 關閉：${s.closed_at}` : ''}
+                        | 正選 ${s.main_slots} / 備取 ${s.waitlist_slots}
+                    </div>
+                    <div class="history-detail" id="historyDetail-${s.id}" style="display:none; margin-top:8px;"></div>
+                </div>`;
+            });
+            container.innerHTML = html;
+
+            // Expand buttons
+            container.querySelectorAll('.expand-history-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const sid = parseInt(btn.dataset.sessionId);
+                    const detail = $(`#historyDetail-${sid}`);
+                    if (detail.style.display !== 'none') {
+                        detail.style.display = 'none';
+                        return;
+                    }
+                    try {
+                        const data = await api(`/admin/history/${sid}/registrations`);
+                        if (!data.registrations || data.registrations.length === 0) {
+                            detail.innerHTML = '<p style="font-size:0.8rem;color:var(--text-muted);">無報名紀錄</p>';
+                        } else {
+                            const statusLabels = { pending: '⏳', selected: '✅', waitlist: '📋', rejected: '❌' };
+                            let tbl = '<table class="reg-table" style="font-size:0.78rem;"><thead><tr><th>#</th><th>ID</th><th>名稱</th><th>狀態</th></tr></thead><tbody>';
+                            data.registrations.forEach((r, i) => {
+                                tbl += `<tr><td>${i + 1}</td><td>${escapeHtml(r.game_id)}</td><td>${escapeHtml(r.display_name)}</td><td>${statusLabels[r.status] || r.status}</td></tr>`;
+                            });
+                            tbl += '</tbody></table>';
+                            detail.innerHTML = tbl;
+                        }
+                        detail.style.display = '';
+                    } catch (e) {
+                        detail.innerHTML = '<p style="color:var(--accent-danger);">載入失敗</p>';
+                        detail.style.display = '';
+                    }
+                });
+            });
+        } catch (e) { /* ignore */ }
+    }
+
+    // Load history when switching to history tab
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            if (tab.dataset.tab === 'history') loadSessionHistory();
+        });
+    });
 
     window._markLate = async function (gameId, displayName) {
         if (!confirm(`確定要標記 ${displayName || gameId} 為遲到嗎？`)) return;

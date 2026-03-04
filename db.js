@@ -176,6 +176,10 @@ function getActiveSession() {
   return getOne("SELECT * FROM sessions WHERE status = 'open' ORDER BY id DESC LIMIT 1");
 }
 
+function getAllSessions() {
+  return getAll('SELECT * FROM sessions ORDER BY id DESC');
+}
+
 function closeSession(sessionId) {
   runSql("UPDATE sessions SET status = 'closed', closed_at = ? WHERE id = ?", [taipeiNow(), sessionId]);
 }
@@ -401,6 +405,7 @@ module.exports = {
   clearChatMessages,
   deleteSession,
   resetAllStatuses,
+  getAllSessions,
   banUser: (gameId, reason) => { runSql('INSERT OR REPLACE INTO banned_users (game_id, reason, banned_at) VALUES (?, ?, ?)', [gameId, reason || '', taipeiNow()]); },
   unbanUser: (gameId) => { runSql('DELETE FROM banned_users WHERE game_id = ?', [gameId]); },
   isBanned: (gameId) => !!getOne('SELECT game_id FROM banned_users WHERE game_id = ?', [gameId]),

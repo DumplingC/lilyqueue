@@ -550,6 +550,11 @@
         loadStatus();
     });
 
+    socket.on('admin:private-message', (data) => {
+        showToast(`💌 管理員私訊：${data.message}`);
+        sendBrowserNotif('💌 管理員私訊', data.message);
+    });
+
     socket.on('chat:cleared', () => {
         chatMessages.innerHTML = `<div class="empty-state" id="chatEmpty"><p style="font-size: 0.8rem;">對話紀錄已被管理員清除</p></div>`;
     });
