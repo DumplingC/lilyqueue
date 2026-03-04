@@ -212,8 +212,18 @@
                     $('#lateWarning').style.display = '';
                 }
 
-                // Update status display
+                // Update status display (with toast if changed)
+                const prevStatus = state.myStatus;
                 updateMyStatusUI(data.status);
+                if (prevStatus && prevStatus !== data.status) {
+                    const toastMap = {
+                        selected: '🎉 恭喜！您已被錄取為正選',
+                        waitlist: '📋 您目前列為備取，請等待最終結果',
+                        rejected: '❌ 很抱歉，本次未被錄取',
+                        pending: '⏳ 您的審核狀態已變更為等待中'
+                    };
+                    showToast(toastMap[data.status] || '您的審核狀態已更新');
+                }
 
                 // Join chat room
                 socket.emit('join:registered', { gameId: state.gameId, displayName: state.displayName });
