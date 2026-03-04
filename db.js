@@ -136,6 +136,20 @@ async function initialize() {
   // Add fingerprint column for browser fingerprinting
   try { db.run('ALTER TABLE registrations ADD COLUMN fingerprint TEXT'); } catch (e) { /* already exists */ }
 
+  // Admin audit log
+  db.run(`CREATE TABLE IF NOT EXISTS admin_audit_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    action TEXT NOT NULL,
+    target TEXT,
+    detail TEXT,
+    created_at TEXT DEFAULT (datetime('now', 'localtime'))
+  )`);
+
+  // Auto-cleanup: delete sessions older than 30 days
+  try {
+    db.run(`DELETE FROM sessions WHERE created_at < datetime('now', '-30 days', 'localtime')`);
+  } catch (e) { /* ignore */ }
+
   save();
   return db;
 }

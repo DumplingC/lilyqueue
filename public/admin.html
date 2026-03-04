@@ -212,6 +212,31 @@
                             複製全部名單</button>
                     </div>
 
+                    <!-- QR Code -->
+                    <div class="card" style="margin-top: 16px;">
+                        <div class="card-header">
+                            <span class="icon">📲</span>
+                            <h2>QR Code</h2>
+                        </div>
+                        <button class="btn btn-outline btn-block" id="generateQrBtn">📲 產生 QR Code</button>
+                        <div id="qrCodePreview" style="margin-top:8px; text-align:center;"></div>
+                    </div>
+
+                    <!-- Audit Log -->
+                    <div class="card" style="margin-top: 16px;">
+                        <div class="card-header">
+                            <span class="icon">📜</span>
+                            <h2>操作日誌</h2>
+                        </div>
+                        <div id="auditLogContainer" style="max-height:200px; overflow-y:auto; font-size:0.7rem;">
+                            <div class="empty-state">
+                                <p style="font-size:0.75rem;">點擊下方載入</p>
+                            </div>
+                        </div>
+                        <button class="btn btn-outline btn-block" id="loadAuditLogBtn" style="margin-top:6px;">📜
+                            載入日誌</button>
+                    </div>
+
                     <!-- Announcement -->
                     <div class="card" style="margin-top: 16px;">
                         <div class="card-header">

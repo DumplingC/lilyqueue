@@ -536,6 +536,13 @@
     const chatSendBtn = $('#chatSendBtn');
     const chatEmpty = $('#chatEmpty');
 
+    function highlightMentions(text) {
+        return text.replace(/@(\S+)/g, (match, name) => {
+            const isMe = state.displayName && name === state.displayName;
+            return `<span class="mention${isMe ? ' mention-me' : ''}">${match}</span>`;
+        });
+    }
+
     function addChatMessage(msg) {
         if (chatEmpty) chatEmpty.style.display = 'none';
 
@@ -554,7 +561,7 @@
             <span class="chat-name">${escapeHtml(msg.displayName)}${statusTag}</span>
             <span class="chat-time">${formatTime(msg.sentAt || msg.sent_at)}</span>
           </div>
-          <div class="chat-text">${escapeHtml(msg.message)}</div>
+          <div class="chat-text">${highlightMentions(escapeHtml(msg.message))}</div>
         `;
         }
         chatMessages.appendChild(div);

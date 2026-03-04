@@ -177,7 +177,26 @@ router.post('/register', (req, res) => {
                 lateCount: result.lateCount,
                 registeredAt: db.taipeiNow()
             });
+
+            // Near-capacity alert
+            const session = db.getActiveSession();
+            if (session) {
+                const total = session.main_slots + session.waitlist_slots;
+                const remaining = total - count;
+                if (remaining <= 2 && remaining > 0) {
+                    req.app.io.emit('admin:announcement', {
+                        message: `⚠️ 名額即將額滿！剩餘 ${remaining} 個名額`
+                    });
+                } else if (remaining <= 0) {
+                    req.app.io.emit('admin:announcement', {
+                        message: '🈵 名額已滿！'
+                    });
+                }
+            }
         }
+
+        // Audit log
+        logAudit('register', gameId, `新報名：${displayName || gameId}`);
 
         res.json(responseData);
     } catch (err) {
@@ -767,5 +786,36 @@ router.post('/admin/unban', requireAdmin, (req, res) => {
 router.get('/admin/banned', requireAdmin, (req, res) => {
     res.json({ banned: db.getBannedUsers() });
 });
+
+// ─── QR Code Generator ────────────────────────────────────────────
+const QRCode = require('qrcode');
+router.get('/admin/qrcode', requireAdmin, async (req, res) => {
+    try {
+        const url = req.query.url || `${req.protocol}://${req.get('host')}`;
+        const svg = await QRCode.toString(url, { type: 'svg', margin: 1, width: 256 });
+        res.type('svg').send(svg);
+    } catch (e) {
+        res.status(500).json({ error: 'QR Code 產生失敗' });
+    }
+});
+
+// ─── Admin Audit Log ──────────────────────────────────────────────
+function logAudit(action, target, detail) {
+    try {
+        db.runSql('INSERT INTO admin_audit_log (action, target, detail) VALUES (?, ?, ?)', [action, target || '', detail || '']);
+    } catch (e) { /* ignore */ }
+}
+
+router.get('/admin/audit-log', requireAdmin, (req, res) => {
+    try {
+        const logs = db.querySql('SELECT * FROM admin_audit_log ORDER BY id DESC LIMIT 100');
+        res.json({ logs: logs || [] });
+    } catch (e) {
+        res.json({ logs: [] });
+    }
+});
+
+// Export logAudit for use in other parts
+router.logAudit = logAudit;
 
 module.exports = router;

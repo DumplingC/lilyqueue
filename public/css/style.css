@@ -1953,3 +1953,17 @@ select.form-input option {
     opacity: 0.5;
   }
 }
+
+/* ─── @Mention Highlighting ────────────────────────────────────── */
+.mention {
+  color: var(--accent-info);
+  font-weight: 600;
+  cursor: default;
+}
+
+.mention.mention-me {
+  background: rgba(255, 179, 71, 0.2);
+  color: var(--accent-warning);
+  padding: 0 3px;
+  border-radius: 3px;
+}

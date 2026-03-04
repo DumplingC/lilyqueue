@@ -1533,6 +1533,54 @@
         } catch (e) { /* ignore */ }
     }
 
+    // ═══════════════════════════════════════════════════════════════════
+    // QR CODE GENERATOR
+    // ═══════════════════════════════════════════════════════════════════
+    $('#generateQrBtn').addEventListener('click', async () => {
+        try {
+            const url = window.location.origin;
+            const res = await fetch(`/api/admin/qrcode?url=${encodeURIComponent(url)}`, {
+                headers: { 'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}` }
+            });
+            if (!res.ok) throw new Error('Failed');
+            const svg = await res.text();
+            $('#qrCodePreview').innerHTML = svg + `<p style="font-size:0.65rem; color:var(--text-muted); margin-top:4px;">${url}</p>`;
+            showToast('📲 QR Code 已產生');
+        } catch (e) { showToast(e.message, 'error'); }
+    });
+
+    // ═══════════════════════════════════════════════════════════════════
+    // AUDIT LOG
+    // ═══════════════════════════════════════════════════════════════════
+    $('#loadAuditLogBtn').addEventListener('click', async () => {
+        try {
+            const data = await api('/admin/audit-log');
+            const container = $('#auditLogContainer');
+            if (!data.logs || data.logs.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p style="font-size:0.75rem;">暫無操作紀錄</p></div>';
+                return;
+            }
+            const actionColors = {
+                register: 'var(--accent-info)', approve: 'var(--accent-success)',
+                reject: 'var(--accent-danger)', kick: 'var(--accent-warning)',
+                ban: 'var(--accent-danger)', unban: 'var(--accent-success)',
+                announce: 'var(--accent-primary)'
+            };
+            container.innerHTML = data.logs.map(l => {
+                const color = actionColors[l.action] || 'var(--text-muted)';
+                return `<div style="padding:4px 0; border-bottom:1px solid var(--border-color-light); display:flex; gap:6px; align-items:flex-start;">
+                    <span style="background:${color}; color:var(--text-inverse); padding:1px 5px; border-radius:4px; font-size:0.6rem; font-weight:600; white-space:nowrap;">${escapeHtml(l.action)}</span>
+                    <div style="flex:1; min-width:0;">
+                        <span style="font-weight:500;">${escapeHtml(l.target || '')}</span>
+                        <span style="color:var(--text-muted);"> ${escapeHtml(l.detail || '')}</span>
+                        <div style="font-size:0.6rem; color:var(--text-muted);">${l.created_at || ''}</div>
+                    </div>
+                </div>`;
+            }).join('');
+            showToast(`已載入 ${data.logs.length} 筆日誌`);
+        } catch (e) { showToast(e.message, 'error'); }
+    });
+
     // ─── Init ─────────────────────────────────────────────────────────
     checkAuth();
     loadTheme();
