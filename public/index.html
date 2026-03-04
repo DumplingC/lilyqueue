@@ -74,10 +74,24 @@
               <input type="number" id="captchaAnswer" class="form-input" placeholder="請輸入答案" autocomplete="off">
               <input type="hidden" id="captchaToken">
             </div>
+            <!-- Rules Agreement (hidden if disabled) -->
+            <div class="form-group" id="rulesGroup" style="display:none;">
+              <div
+                style="background:var(--bg-glass-strong); border-radius:6px; padding:8px; font-size:0.75rem; max-height:80px; overflow-y:auto; margin-bottom:6px; white-space:pre-wrap;"
+                id="rulesDisplay"></div>
+              <label style="display:flex; align-items:center; gap:6px; font-size:0.8rem; cursor:pointer;">
+                <input type="checkbox" id="rulesAgree">
+                <span>我已閱讀並同意以上規則</span>
+              </label>
+            </div>
             <button type="submit" class="btn btn-primary btn-block" id="submitBtn">
               <span>🚀</span> 確認報名
             </button>
           </form>
+          <div style="text-align:center; margin-top:8px;">
+            <button class="btn btn-ghost" id="historyLookupBtn" style="font-size:0.75rem; color:var(--text-muted);">📜
+              查詢我的歷史報名紀錄</button>
+          </div>
         </div>
 
         <!-- Status Display (shows after registration) -->

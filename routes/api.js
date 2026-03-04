@@ -887,6 +887,118 @@ router.get('/admin/audit-log', requireAdmin, (req, res) => {
 // Export logAudit for use in other parts
 router.logAudit = logAudit;
 
+// ─── Admin Notes on Registrations ─────────────────────────────────
+router.put('/admin/note/:regId', requireAdmin, (req, res) => {
+    const regId = parseInt(req.params.regId);
+    const note = sanitize(req.body.note || '').substring(0, 300);
+    try {
+        db.runSql(`UPDATE registrations SET extra_data = json_set(COALESCE(extra_data, '{}'), '$.adminNote', ?) WHERE id = ?`, [note, regId]);
+        res.json({ message: '備註已儲存' });
+    } catch (e) {
+        res.status(500).json({ error: '儲存失敗' });
+    }
+});
+
+router.get('/admin/note/:regId', requireAdmin, (req, res) => {
+    const regId = parseInt(req.params.regId);
+    try {
+        const row = db.querySql('SELECT extra_data FROM registrations WHERE id = ?', [regId]);
+        let note = '';
+        if (row && row[0] && row[0].extra_data) {
+            const extra = JSON.parse(row[0].extra_data);
+            note = extra.adminNote || '';
+        }
+        res.json({ note });
+    } catch (e) {
+        res.json({ note: '' });
+    }
+});
+
+// ─── Registration Rules / Terms ───────────────────────────────────
+router.get('/admin/rules', requireAdmin, (req, res) => {
+    res.json({
+        rules: db.getSettingValue('registration_rules', ''),
+        enabled: db.getSettingValue('rules_enabled', 'false') === 'true'
+    });
+});
+
+router.put('/admin/rules', requireAdmin, (req, res) => {
+    db.setSettingValue('registration_rules', req.body.rules || '');
+    db.setSettingValue('rules_enabled', req.body.enabled ? 'true' : 'false');
+    logAudit('setting', 'rules', `報名規則 ${req.body.enabled ? '開啟' : '關閉'}`);
+    res.json({ message: '規則已儲存' });
+});
+
+// Public rules (for user page)
+router.get('/rules', (req, res) => {
+    const enabled = db.getSettingValue('rules_enabled', 'false') === 'true';
+    if (!enabled) return res.json({ enabled: false, rules: '' });
+    res.json({ enabled: true, rules: db.getSettingValue('registration_rules', '') });
+});
+
+// ─── User History Lookup ──────────────────────────────────────────
+router.get('/history/:gameId', (req, res) => {
+    const gameId = sanitize(req.params.gameId);
+    if (!gameId) return res.status(400).json({ error: '請輸入遊戲 ID' });
+    try {
+        const records = db.querySql(`
+            SELECT r.game_id, r.display_name, r.status, r.registered_at, r.is_late_flagged,
+                   s.title as session_title, s.created_at as session_date
+            FROM registrations r
+            JOIN sessions s ON r.session_id = s.id
+            WHERE r.game_id = ?
+            ORDER BY r.registered_at DESC
+            LIMIT 50
+        `, [gameId]);
+        res.json({ records: records || [] });
+    } catch (e) {
+        res.json({ records: [] });
+    }
+});
+
+// ─── Excel Export ─────────────────────────────────────────────────
+router.get('/admin/export-excel', requireAdmin, (req, res) => {
+    const session = db.getActiveSession();
+    if (!session) return res.status(400).json({ error: '沒有活躍場次' });
+
+    const regs = db.getRegistrations(session.id);
+    const statusMap = { pending: '審核中', selected: '正選', waitlist: '備取', rejected: '未錄取' };
+    const statusColor = { pending: '#FFA500', selected: '#4CAF50', waitlist: '#2196F3', rejected: '#f44336' };
+
+    let html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">
+<head><meta charset="utf-8"><style>
+table { border-collapse: collapse; width: 100%; }
+th, td { border: 1px solid #ccc; padding: 6px 10px; font-size: 12px; }
+th { background: #1a1a2e; color: white; font-weight: bold; }
+tr:nth-child(even) { background: #f8f9fa; }
+.status { font-weight: bold; padding: 2px 8px; border-radius: 4px; color: white; }
+</style></head><body>
+<h2>${session.title || '報名名單'} (${session.created_at})</h2>
+<table>
+<tr><th>序號</th><th>遊戲 ID</th><th>顯示名稱</th><th>狀態</th><th>報名時間</th><th>遲到</th><th>備註</th></tr>`;
+
+    regs.forEach((r, i) => {
+        let note = '';
+        try { note = JSON.parse(r.extra_data || '{}').adminNote || ''; } catch (e) { }
+        const color = statusColor[r.status] || '#999';
+        html += `<tr>
+            <td>${i + 1}</td>
+            <td>${r.game_id}</td>
+            <td>${r.display_name}</td>
+            <td><span class="status" style="background:${color}">${statusMap[r.status] || r.status}</span></td>
+            <td>${r.registered_at}</td>
+            <td>${r.is_late_flagged ? '⚠️ 是' : '否'}</td>
+            <td>${note}</td>
+        </tr>`;
+    });
+
+    html += '</table></body></html>';
+
+    res.setHeader('Content-Type', 'application/vnd.ms-excel; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="registrations_${session.id}.xls"`);
+    res.send(html);
+});
+
 // ─── CAPTCHA Toggle ───────────────────────────────────────────────
 router.get('/admin/captcha-toggle', requireAdmin, (req, res) => {
     res.json({ enabled: db.getSettingValue('captcha_enabled', 'false') === 'true' });

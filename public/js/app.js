@@ -422,6 +422,48 @@
         } catch (e) { /* ignore */ }
     }
 
+    // ─── Registration Rules ──────────────────────────────────────────
+    async function loadRules() {
+        try {
+            const res = await fetch('/api/rules');
+            const data = await res.json();
+            const rulesGroup = $('#rulesGroup');
+            if (!rulesGroup) return;
+            if (!data.enabled || !data.rules) {
+                rulesGroup.style.display = 'none';
+                return;
+            }
+            rulesGroup.style.display = '';
+            $('#rulesDisplay').textContent = data.rules;
+            $('#rulesAgree').checked = false;
+        } catch (e) { /* ignore */ }
+    }
+
+    // ─── History Lookup ──────────────────────────────────────────────
+    const historyBtn = $('#historyLookupBtn');
+    if (historyBtn) {
+        historyBtn.addEventListener('click', async () => {
+            const gameId = prompt('輸入你的遊戲 ID 查詢歷史報名紀錄：');
+            if (!gameId) return;
+            try {
+                const res = await fetch(`/api/history/${encodeURIComponent(gameId.trim())}`);
+                const data = await res.json();
+                if (!data.records || data.records.length === 0) {
+                    showToast('找不到此遊戲 ID 的報名紀錄', 'error');
+                    return;
+                }
+                const statusMap = { pending: '⏳ 審核中', selected: '✅ 正選', waitlist: '📋 備取', rejected: '❌ 未錄取' };
+                let msg = `📜 ${gameId} 的歷史報名紀錄：\n\n`;
+                data.records.forEach((r, i) => {
+                    msg += `${i + 1}. ${r.session_title || '場次'} — ${statusMap[r.status] || r.status}\n   ${r.registered_at}${r.is_late_flagged ? ' ⚠️遲到' : ''}\n\n`;
+                });
+                alert(msg);
+            } catch (e) {
+                showToast('查詢失敗', 'error');
+            }
+        });
+    }
+
     // ─── Cancel Registration ──────────────────────────────────────────
     const cancelRegBtn = $('#cancelRegBtn');
     if (cancelRegBtn) {
@@ -470,6 +512,15 @@
             const answer = $('#captchaAnswer').value;
             if (!answer) {
                 showToast('請輸入驗證答案', 'error');
+                return;
+            }
+        }
+
+        // Rules agreement check
+        const rulesGroup = $('#rulesGroup');
+        if (rulesGroup && rulesGroup.style.display !== 'none') {
+            if (!$('#rulesAgree').checked) {
+                showToast('請先同意報名規則', 'error');
                 return;
             }
         }
@@ -1083,6 +1134,7 @@
     loadBackground();
     loadTheme();
     loadCaptcha();
+    loadRules();
     requestNotifPermission();
     applyLanguage();
 

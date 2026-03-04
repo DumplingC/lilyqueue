@@ -270,7 +270,10 @@
                     <h2>報名列表</h2>
                     <span class="badge badge-open" id="regCountBadge">0 人</span>
                     <button class="btn btn-xs btn-outline" id="exportCsvBtn" title="匯出 CSV" style="margin-left:auto;">📥
-                        匯出</button>
+                        CSV</button>
+                    <button class="btn btn-xs btn-outline" id="exportExcelBtn" title="匯出 Excel"
+                        style="margin-left:4px;">📥
+                        Excel</button>
                 </div>
                 <p style="font-size:0.7rem; color:var(--text-muted); margin:4px 0 8px; line-height:1.4;">
                     💡 系統會自動偵測瀏覽器指紋，若有人用不同遊戲 ID 從同一裝置報名，該筆報名旁會出現
@@ -499,6 +502,26 @@
                         <button class="btn btn-primary btn-block" id="saveScheduleBtn">💾 儲存排程</button>
                         <button class="btn btn-outline btn-block" id="clearScheduleBtn"
                             style="margin-top:4px; font-size:0.75rem;">🗑️ 清除排程</button>
+                    </div>
+
+                    <!-- Registration Rules -->
+                    <div class="card" style="margin-top:16px;">
+                        <div class="card-header">
+                            <span class="icon">📋</span>
+                            <h2>報名規則 / 須知</h2>
+                        </div>
+                        <div class="form-group" style="display:flex; align-items:center; gap:8px;">
+                            <label style="flex:1; margin:0;">啟用報名規則（報名前須勾選同意）</label>
+                            <label class="switch">
+                                <input type="checkbox" id="rulesToggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <textarea id="rulesText" class="form-input" rows="4" placeholder="輸入報名規則或注意事項...
+(支援換行)" style="resize:vertical; font-size:0.8rem;"></textarea>
+                        </div>
+                        <button class="btn btn-primary btn-block" id="saveRulesBtn">💾 儲存規則</button>
                     </div>
 
                     <!-- Custom Registration Fields -->

@@ -430,6 +430,7 @@
               <button class="btn btn-xs btn-outline kick-btn" data-game-id="${escapeHtml(reg.game_id)}" title="踢除">🚪</button>
               <button class="btn btn-xs btn-outline ban-btn" data-game-id="${escapeHtml(reg.game_id)}" title="封禁" style="color:var(--accent-danger);">🚫</button>
               <button class="btn btn-xs btn-outline pm-btn" data-game-id="${escapeHtml(reg.game_id)}" title="私訊">💬</button>
+              <button class="btn btn-xs btn-outline note-btn" data-reg-id="${reg.id}" data-game-id="${escapeHtml(reg.game_id)}" title="備註">📝</button>
             </div>
           </td>
         </tr>
@@ -524,12 +525,65 @@
                 }
             });
         });
+
+        // Admin notes
+        container.querySelectorAll('.note-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const regId = btn.dataset.regId;
+                const gameId = btn.dataset.gameId;
+                try {
+                    const data = await api(`/admin/note/${regId}`);
+                    const note = prompt(`📝 備註 (${gameId})：`, data.note || '');
+                    if (note === null) return; // cancelled
+                    await api(`/admin/note/${regId}`, {
+                        method: 'PUT',
+                        body: { note }
+                    });
+                    showToast('📝 備註已儲存');
+                } catch (e) {
+                    showToast(e.message, 'error');
+                }
+            });
+        });
     }
 
     // ─── CSV Export ───────────────────────────────────────────────────
     $('#exportCsvBtn').addEventListener('click', () => {
         window.open(`/api/admin/export-csv?token=${adminToken}`, '_blank');
     });
+
+    // ─── Excel Export ──────────────────────────────────────────────────
+    const excelBtn = $('#exportExcelBtn');
+    if (excelBtn) {
+        excelBtn.addEventListener('click', () => {
+            window.open(`/api/admin/export-excel?token=${adminToken}`, '_blank');
+        });
+    }
+
+    // ─── Registration Rules ────────────────────────────────────────────
+    async function loadRules() {
+        try {
+            const data = await api('/admin/rules');
+            if ($('#rulesToggle')) $('#rulesToggle').checked = data.enabled;
+            if ($('#rulesText')) $('#rulesText').value = data.rules || '';
+        } catch (e) { /* ignore */ }
+    }
+
+    const saveRulesBtn = $('#saveRulesBtn');
+    if (saveRulesBtn) {
+        saveRulesBtn.addEventListener('click', async () => {
+            try {
+                await api('/admin/rules', {
+                    method: 'PUT',
+                    body: {
+                        rules: $('#rulesText').value,
+                        enabled: $('#rulesToggle').checked
+                    }
+                });
+                showToast('📋 規則已儲存');
+            } catch (e) { showToast(e.message, 'error'); }
+        });
+    }
 
     // ─── Session History ──────────────────────────────────────────────
     async function loadSessionHistory() {
@@ -1747,5 +1801,6 @@
     loadDashboardStats();
     loadCaptchaToggle();
     loadSchedule();
+    loadRules();
 
 })();
