@@ -62,6 +62,9 @@
         <div class="tab-content active" id="tab-session">
             <div class="admin-layout">
                 <div>
+                    <!-- Dashboard Stats -->
+                    <div id="dashboardStats" style="margin-bottom:12px;"></div>
+
                     <!-- Session Controls -->
                     <div class="card" id="sessionControlCard">
                         <div class="card-header">
@@ -464,6 +467,45 @@
                                 <div class="empty-state">
                                     <p style="font-size: 0.85rem;">沒有遲到紀錄</p>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ban List -->
+                    <div>
+                        <div class="card">
+                            <div class="card-header">
+                                <span class="icon">🚫</span>
+                                <h2>封禁名單</h2>
+                            </div>
+                            <div id="banListContainer">
+                                <div class="empty-state">
+                                    <p style="font-size: 0.85rem;">沒有已封禁的用戶</p>
+                                </div>
+                            </div>
+                            <button class="btn btn-outline btn-block" id="loadBanListBtn" style="margin-top:8px;">
+                                🔄 載入封禁名單
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Session Template -->
+                    <div>
+                        <div class="card">
+                            <div class="card-header">
+                                <span class="icon">📋</span>
+                                <h2>場次模板</h2>
+                            </div>
+                            <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:8px;">
+                                儲存目前的場次設定作為模板，下次可一鍵套用
+                            </p>
+                            <button class="btn btn-outline btn-block" id="saveTemplateBtn" style="margin-bottom:6px;">
+                                💾 儲存為模板
+                            </button>
+                            <button class="btn btn-outline btn-block" id="loadTemplateBtn">
+                                📥 套用模板
+                            </button>
+                            <div id="templateInfo" style="font-size:0.75rem; color:var(--text-muted); margin-top:6px;">
                             </div>
                         </div>
                     </div>

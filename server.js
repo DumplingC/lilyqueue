@@ -2,6 +2,7 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const helmet = require('helmet');
+const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
 const os = require('os');
@@ -19,12 +20,13 @@ const io = new Server(server, {
 // Store io instance on app for route access
 app.io = io;
 
-// ─── Security Middleware ──────────────────────────────────────────
+// ─── Security & Performance Middleware ────────────────────────────
+app.use(compression());
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.socket.io", "https://fonts.googleapis.com"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
             styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
             fontSrc: ["'self'", "https://fonts.gstatic.com"],
             imgSrc: ["'self'", "data:", "blob:"],
@@ -60,8 +62,11 @@ app.use('/api/auth/login', loginLimiter);
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: false, limit: '1mb' }));
 
-// ─── Static files ─────────────────────────────────────────────────
-app.use(express.static(path.join(__dirname, 'public')));
+// ─── Static files (with cache) ────────────────────────────────────
+app.use(express.static(path.join(__dirname, 'public'), {
+    maxAge: '1h',
+    etag: true
+}));
 
 // ─── API Routes ───────────────────────────────────────────────────
 app.use('/api', apiRoutes);

@@ -71,8 +71,51 @@
         } catch (e) { /* audio not supported */ }
     }
 
+    // ─── Confetti Animation ───────────────────────────────────────────
+    function launchConfetti() {
+        const emojis = ['🎉', '🎊', '✨', '🌟', '⭐', '🎮'];
+        const container = document.createElement('div');
+        container.className = 'confetti-container';
+        document.body.appendChild(container);
+        for (let i = 0; i < 40; i++) {
+            const span = document.createElement('span');
+            span.className = 'confetti-piece';
+            span.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            span.style.left = Math.random() * 100 + '%';
+            span.style.animationDelay = Math.random() * 0.5 + 's';
+            span.style.animationDuration = (1.5 + Math.random() * 1.5) + 's';
+            container.appendChild(span);
+        }
+        setTimeout(() => container.remove(), 3500);
+    }
+
     // ─── Socket.IO connection ─────────────────────────────────────────
     const socket = io({ transports: ['websocket', 'polling'] });
+
+    // Reconnect overlay
+    function showReconnectOverlay() {
+        let overlay = document.getElementById('reconnectOverlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'reconnectOverlay';
+            overlay.innerHTML = '<div class="reconnect-box"><span class="spinner"></span> 重新連線中...</div>';
+            document.body.appendChild(overlay);
+        }
+        overlay.style.display = 'flex';
+    }
+    function hideReconnectOverlay() {
+        const overlay = document.getElementById('reconnectOverlay');
+        if (overlay) overlay.style.display = 'none';
+    }
+
+    socket.on('disconnect', () => showReconnectOverlay());
+    socket.on('connect', () => {
+        hideReconnectOverlay();
+        // Re-join room if was registered
+        if (state.registered && state.gameId) {
+            socket.emit('join:registered', { gameId: state.gameId, displayName: state.displayName });
+        }
+    });
 
     // ─── DOM Elements ─────────────────────────────────────────────────
     const $ = (sel) => document.querySelector(sel);
@@ -386,6 +429,7 @@
             }
 
             showToast('報名資料已送出，等待管理員審核');
+            launchConfetti();
 
             // Join chat
             socket.emit('join:registered', { gameId: state.gameId, displayName: state.displayName });

@@ -1401,10 +1401,118 @@
             showToast(e.message, 'error');
         }
     });
+    // ═══════════════════════════════════════════════════════════════════
+    // BAN LIST MANAGEMENT
+    // ═══════════════════════════════════════════════════════════════════
+    $('#loadBanListBtn').addEventListener('click', async () => {
+        try {
+            const data = await api('/admin/banned');
+            const container = $('#banListContainer');
+            if (!data.banned || data.banned.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p style="font-size: 0.85rem;">沒有已封禁的用戶</p></div>';
+                return;
+            }
+            let html = '';
+            data.banned.forEach(b => {
+                html += `<div class="card" style="padding:8px; margin-bottom:4px; display:flex; align-items:center; justify-content:space-between;">
+                    <div>
+                        <strong>${escapeHtml(b.game_id)}</strong>
+                        <span style="font-size:0.7rem; color:var(--text-muted);">${b.reason ? ' — ' + escapeHtml(b.reason) : ''}</span>
+                        <div style="font-size:0.65rem; color:var(--text-muted);">${b.banned_at || ''}</div>
+                    </div>
+                    <button class="btn btn-xs btn-outline unban-btn" data-id="${escapeHtml(b.game_id)}" style="color:var(--accent-success);">✅ 解除</button>
+                </div>`;
+            });
+            container.innerHTML = html;
+            container.querySelectorAll('.unban-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    try {
+                        await api('/admin/unban', { method: 'POST', body: { gameId: btn.dataset.id } });
+                        showToast('已解除封禁');
+                        $('#loadBanListBtn').click(); // reload
+                    } catch (e) { showToast(e.message, 'error'); }
+                });
+            });
+            showToast(`已載入 ${data.banned.length} 筆封禁記錄`);
+        } catch (e) { showToast(e.message, 'error'); }
+    });
+
+    // ═══════════════════════════════════════════════════════════════════
+    // SESSION TEMPLATES (localStorage based)
+    // ═══════════════════════════════════════════════════════════════════
+    function loadTemplateInfo() {
+        const tpl = localStorage.getItem('session_template');
+        const info = $('#templateInfo');
+        if (tpl) {
+            const t = JSON.parse(tpl);
+            info.textContent = `已儲存模板：${t.title} (正選${t.mainSlots}/備取${t.waitlistSlots})`;
+        } else {
+            info.textContent = '尚未儲存模板';
+        }
+    }
+
+    $('#saveTemplateBtn').addEventListener('click', () => {
+        const tpl = {
+            title: $('#newTitle').value || '',
+            mainSlots: $('#newMainSlots').value || '6',
+            waitlistSlots: $('#newWaitlistSlots').value || '2',
+            lateHandling: $('#newLateHandling').value || 'none'
+        };
+        localStorage.setItem('session_template', JSON.stringify(tpl));
+        showToast('📋 模板已儲存');
+        loadTemplateInfo();
+    });
+
+    $('#loadTemplateBtn').addEventListener('click', () => {
+        const tpl = localStorage.getItem('session_template');
+        if (!tpl) {
+            showToast('尚未儲存模板', 'error');
+            return;
+        }
+        const t = JSON.parse(tpl);
+        $('#newTitle').value = t.title || '';
+        $('#newMainSlots').value = t.mainSlots || '6';
+        $('#newWaitlistSlots').value = t.waitlistSlots || '2';
+        $('#newLateHandling').value = t.lateHandling || 'none';
+        showToast('📥 已套用模板');
+    });
+
+    // ═══════════════════════════════════════════════════════════════════
+    // DASHBOARD STATS
+    // ═══════════════════════════════════════════════════════════════════
+    async function loadDashboardStats() {
+        try {
+            const data = await api('/admin/history');
+            const sessions = data.sessions || [];
+            const totalSessions = sessions.length;
+            const totalRegs = sessions.reduce((sum, s) => sum + (s.regCount || 0), 0);
+            const avgRegs = totalSessions > 0 ? (totalRegs / totalSessions).toFixed(1) : 0;
+            const statsEl = $('#dashboardStats');
+            if (statsEl) {
+                statsEl.innerHTML = `
+                    <div style="display:flex; gap:12px; flex-wrap:wrap;">
+                        <div class="card" style="flex:1; min-width:80px; text-align:center; padding:12px;">
+                            <div style="font-size:1.5rem; font-weight:bold; color:var(--accent-primary);">${totalSessions}</div>
+                            <div style="font-size:0.7rem; color:var(--text-muted);">總場次</div>
+                        </div>
+                        <div class="card" style="flex:1; min-width:80px; text-align:center; padding:12px;">
+                            <div style="font-size:1.5rem; font-weight:bold; color:var(--accent-success);">${totalRegs}</div>
+                            <div style="font-size:0.7rem; color:var(--text-muted);">總報名人次</div>
+                        </div>
+                        <div class="card" style="flex:1; min-width:80px; text-align:center; padding:12px;">
+                            <div style="font-size:1.5rem; font-weight:bold; color:var(--accent-warning);">${avgRegs}</div>
+                            <div style="font-size:0.7rem; color:var(--text-muted);">平均每場</div>
+                        </div>
+                    </div>`;
+            }
+        } catch (e) { /* ignore */ }
+    }
 
     // ─── Init ─────────────────────────────────────────────────────────
     checkAuth();
     loadTheme();
     loadCustomFields();
+    loadTemplateInfo();
+    loadDashboardStats();
 
 })();
