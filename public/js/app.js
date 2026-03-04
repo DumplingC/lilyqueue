@@ -644,8 +644,22 @@
     });
 
     socket.on('admin:private-message', (data) => {
-        showToast(`💌 管理員私訊：${data.message}`);
+        // Show in chat as a private whisper message
+        if (chatEmpty) chatEmpty.style.display = 'none';
+        const div = document.createElement('div');
+        div.className = 'chat-msg is-private';
+        div.innerHTML = `
+          <div class="chat-meta">
+            <span class="chat-name">💌 管理員私訊</span>
+            <span class="chat-time">${formatTime(data.sentAt)}</span>
+          </div>
+          <div class="chat-text">${escapeHtml(data.message)}</div>
+          <div class="chat-private-tag">僅你可見</div>
+        `;
+        chatMessages.appendChild(div);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
         sendBrowserNotif('💌 管理員私訊', data.message);
+        if (!state.muted) playSound('announce');
     });
 
     socket.on('chat:cleared', () => {
