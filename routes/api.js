@@ -109,7 +109,8 @@ router.get('/status', (req, res) => {
         currentCount: count,
         resultsPublished: !!session.results_published,
         status: session.status,
-        startTime: db.getSettingValue('session_start_time', null)
+        startTime: db.getSettingValue('session_start_time', null),
+        customFields: JSON.parse(db.getSettingValue('custom_fields', '[]'))
     });
 });
 
@@ -142,6 +143,12 @@ router.post('/register', (req, res) => {
         const result = db.addRegistration(session.id, gameId, displayName);
         const position = db.getRegistrationCount(session.id);
         const count = db.getRegistrationCount(session.id);
+
+        // Save custom field data if provided
+        if (req.body.extraData && typeof req.body.extraData === 'object') {
+            const extraJson = JSON.stringify(req.body.extraData);
+            db.runSql('UPDATE registrations SET extra_data = ? WHERE id = ?', [extraJson, result.id]);
+        }
 
         const responseData = {
             message: '報名成功！已收到您的報名資料',
@@ -596,6 +603,26 @@ router.post('/admin/reset-password', requireAdmin, (req, res) => {
     }
     db.setAdminPassword(newPassword);
     res.json({ message: '密碼已更新' });
+});
+
+// ─── Custom Registration Fields ───────────────────────────────────
+router.get('/admin/custom-fields', requireAdmin, (req, res) => {
+    const fields = JSON.parse(db.getSettingValue('custom_fields', '[]'));
+    res.json({ fields });
+});
+
+router.put('/admin/custom-fields', requireAdmin, (req, res) => {
+    const { fields } = req.body;
+    if (!Array.isArray(fields)) return res.status(400).json({ error: '欄位格式錯誤' });
+    // Validate and sanitize
+    const clean = fields.slice(0, 10).map(f => ({
+        name: sanitize(f.name || '').substring(0, 50),
+        type: ['text', 'select'].includes(f.type) ? f.type : 'text',
+        required: !!f.required,
+        options: Array.isArray(f.options) ? f.options.map(o => sanitize(o).substring(0, 50)).slice(0, 20) : []
+    })).filter(f => f.name);
+    db.setSettingValue('custom_fields', JSON.stringify(clean));
+    res.json({ message: '自訂欄位已儲存', fields: clean });
 });
 
 // ─── Session History ──────────────────────────────────────────────

@@ -139,6 +139,8 @@
             // Countdown timer
             startCountdown(data.startTime);
 
+            // Render custom registration fields
+            renderCustomFields(data.customFields || []);
             if (state.registered) {
                 registerCard.style.display = 'none';
                 statusDisplayCard.style.display = '';
@@ -256,6 +258,39 @@
         } catch (e) { /* ignore */ }
     }
 
+    // ─── Custom Fields Rendering ──────────────────────────────────
+    function renderCustomFields(fields) {
+        let container = $('#customFieldsContainer');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'customFieldsContainer';
+            // Insert before the submit button
+            submitBtn.parentElement.insertBefore(container, submitBtn);
+        }
+        if (!fields || fields.length === 0) {
+            container.innerHTML = '';
+            return;
+        }
+        let html = '';
+        fields.forEach(f => {
+            if (f.type === 'select') {
+                const opts = (f.options || []).map(o => `<option value="${o}">${o}</option>`).join('');
+                html += `<div class="form-group">
+                    <label>${f.name}${f.required ? ' *' : ''}</label>
+                    <select class="form-input custom-field" data-name="${f.name}" ${f.required ? 'required' : ''}>
+                        <option value="">請選擇</option>${opts}
+                    </select>
+                </div>`;
+            } else {
+                html += `<div class="form-group">
+                    <label>${f.name}${f.required ? ' *' : ''}</label>
+                    <input type="text" class="form-input custom-field" data-name="${f.name}" ${f.required ? 'required' : ''} placeholder="請輸入${f.name}">
+                </div>`;
+            }
+        });
+        container.innerHTML = html;
+    }
+
     // ─── Registration form ────────────────────────────────────────────
     registerForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -271,10 +306,16 @@
         submitBtn.innerHTML = '<span class="spinner"></span> 報名中...';
 
         try {
+            // Collect custom field data
+            const extraData = {};
+            document.querySelectorAll('.custom-field').forEach(el => {
+                extraData[el.dataset.name] = el.value.trim();
+            });
+
             const res = await fetch('/api/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ gameId, displayName })
+                body: JSON.stringify({ gameId, displayName, extraData })
             });
             const data = await res.json();
 

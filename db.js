@@ -127,6 +127,8 @@ async function initialize() {
 
   // Add start_time column if not exists
   try { db.run('ALTER TABLE sessions ADD COLUMN start_time TEXT'); } catch (e) { /* already exists */ }
+  // Add extra_data column for custom registration fields
+  try { db.run('ALTER TABLE registrations ADD COLUMN extra_data TEXT'); } catch (e) { /* already exists */ }
 
   save();
   return db;
@@ -380,6 +382,7 @@ function closeDatabase() {
 module.exports = {
   initialize,
   taipeiNow,
+  runSql,
   getSettingValue,
   setSettingValue,
   isAdminPasswordSet,

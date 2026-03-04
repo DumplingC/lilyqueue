@@ -1308,8 +1308,87 @@
         }
     });
 
+    // ═══════════════════════════════════════════════════════════════════
+    // CUSTOM REGISTRATION FIELDS
+    // ═══════════════════════════════════════════════════════════════════
+    let customFields = [];
+
+    function renderCustomFieldEditor() {
+        const container = $('#customFieldsList');
+        if (customFields.length === 0) {
+            container.innerHTML = '<p style="font-size:0.78rem; color:var(--text-muted);">尚未設定自訂欄位</p>';
+            return;
+        }
+        let html = '';
+        customFields.forEach((f, i) => {
+            html += `
+            <div class="card" style="padding:8px; margin-bottom:6px; display:flex; flex-wrap:wrap; gap:6px; align-items:center;">
+                <input type="text" class="form-input" value="${escapeHtml(f.name)}" data-idx="${i}" data-field="name" placeholder="欄位名稱" style="flex:1; min-width:100px; font-size:0.8rem;">
+                <select class="form-input" data-idx="${i}" data-field="type" style="width:80px; font-size:0.8rem;">
+                    <option value="text" ${f.type === 'text' ? 'selected' : ''}>文字</option>
+                    <option value="select" ${f.type === 'select' ? 'selected' : ''}>選單</option>
+                </select>
+                <label style="font-size:0.75rem; display:flex; align-items:center; gap:3px;">
+                    <input type="checkbox" data-idx="${i}" data-field="required" ${f.required ? 'checked' : ''}> 必填
+                </label>
+                ${f.type === 'select' ? `<input type="text" class="form-input" value="${(f.options || []).join(',')}" data-idx="${i}" data-field="options" placeholder="選項（逗號分隔）" style="flex:2; min-width:120px; font-size:0.78rem;">` : ''}
+                <button class="btn btn-xs btn-outline remove-field-btn" data-idx="${i}" style="color:var(--accent-danger);">✕</button>
+            </div>`;
+        });
+        container.innerHTML = html;
+
+        // Bind change listeners
+        container.querySelectorAll('[data-field]').forEach(el => {
+            el.addEventListener('change', () => {
+                const idx = parseInt(el.dataset.idx);
+                const field = el.dataset.field;
+                if (field === 'name') customFields[idx].name = el.value;
+                if (field === 'type') {
+                    customFields[idx].type = el.value;
+                    renderCustomFieldEditor(); // re-render to show/hide options
+                }
+                if (field === 'required') customFields[idx].required = el.checked;
+                if (field === 'options') customFields[idx].options = el.value.split(',').map(s => s.trim()).filter(Boolean);
+            });
+        });
+
+        container.querySelectorAll('.remove-field-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                customFields.splice(parseInt(btn.dataset.idx), 1);
+                renderCustomFieldEditor();
+            });
+        });
+    }
+
+    async function loadCustomFields() {
+        try {
+            const data = await api('/admin/custom-fields');
+            customFields = data.fields || [];
+            renderCustomFieldEditor();
+        } catch (e) { /* ignore */ }
+    }
+
+    $('#addCustomFieldBtn').addEventListener('click', () => {
+        if (customFields.length >= 10) {
+            showToast('最多只能新增 10 個欄位', 'error');
+            return;
+        }
+        customFields.push({ name: '', type: 'text', required: false, options: [] });
+        renderCustomFieldEditor();
+    });
+
+    $('#saveCustomFieldsBtn').addEventListener('click', async () => {
+        try {
+            await api('/admin/custom-fields', { method: 'PUT', body: { fields: customFields } });
+            showToast('自訂欄位已儲存');
+        } catch (e) {
+            showToast(e.message, 'error');
+        }
+    });
+
     // ─── Init ─────────────────────────────────────────────────────────
     checkAuth();
     loadTheme();
+    loadCustomFields();
 
 })();
