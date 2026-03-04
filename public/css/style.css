@@ -1520,11 +1520,9 @@ select.form-input option {
 /* ─── Announcement Banner ────────────────────────────────────────── */
 .announcement-banner {
   width: 100%;
-  padding: 12px 18px;
+  padding: 10px 14px;
   background: linear-gradient(135deg, rgba(255, 179, 71, 0.2) 0%, rgba(124, 92, 255, 0.2) 100%);
-  border: 1px solid rgba(255, 179, 71, 0.4);
-  border-radius: var(--radius-md);
-  margin-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 179, 71, 0.4);
   display: flex;
   align-items: center;
   gap: 10px;

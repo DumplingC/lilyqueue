@@ -11,11 +11,6 @@
 
 <body>
   <div class="app-wrapper" id="app">
-    <!-- Announcement Banner (top-level, always full width) -->
-    <div class="announcement-banner" id="announcementBanner" style="display: none;">
-      <span class="announcement-icon">📢</span>
-      <span class="announcement-text" id="announcementText"></span>
-    </div>
 
     <!-- Compact Header -->
     <header class="app-header">
@@ -102,6 +97,11 @@
 
       <!-- RIGHT / BOTTOM: Chat (visible after registration) -->
       <section class="panel-chat" id="chatColumn" style="display: none;">
+        <!-- Announcement Banner -->
+        <div class="announcement-banner" id="announcementBanner" style="display: none;">
+          <span class="announcement-icon">📢</span>
+          <span class="announcement-text" id="announcementText"></span>
+        </div>
         <!-- Mobile tab buttons -->
         <div class="chat-tabs">
           <button class="chat-tab active" data-tab="messages">💬 聊天</button>
