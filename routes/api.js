@@ -150,6 +150,11 @@ router.post('/register', (req, res) => {
             db.runSql('UPDATE registrations SET extra_data = ? WHERE id = ?', [extraJson, result.id]);
         }
 
+        // Save browser fingerprint
+        if (req.body.fingerprint) {
+            db.runSql('UPDATE registrations SET fingerprint = ? WHERE id = ?', [sanitize(req.body.fingerprint), result.id]);
+        }
+
         const responseData = {
             message: '報名成功！已收到您的報名資料',
             registrationId: result.id,
@@ -631,6 +636,23 @@ router.post('/admin/attention', requireAdmin, (req, res) => {
         req.app.io.to('registered').emit('admin:attention');
     }
     res.json({ message: '已發送注意提醒' });
+});
+
+// ─── Multi-ID Detection (fingerprint) ─────────────────────────────
+router.get('/admin/suspicious', requireAdmin, (req, res) => {
+    try {
+        const rows = db.querySql(`
+            SELECT fingerprint, GROUP_CONCAT(DISTINCT game_id) as game_ids, COUNT(DISTINCT game_id) as id_count
+            FROM registrations
+            WHERE fingerprint IS NOT NULL AND fingerprint != ''
+            GROUP BY fingerprint
+            HAVING COUNT(DISTINCT game_id) > 1
+            ORDER BY id_count DESC
+        `);
+        res.json({ suspicious: rows || [] });
+    } catch (e) {
+        res.json({ suspicious: [] });
+    }
 });
 
 // ─── Session History ──────────────────────────────────────────────

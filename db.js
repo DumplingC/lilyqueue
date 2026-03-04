@@ -41,6 +41,10 @@ function runSql(sql, params = []) {
   save();
 }
 
+function querySql(sql, params = []) {
+  return getAll(sql, params);
+}
+
 function save() {
   try {
     const data = db.export();
@@ -129,6 +133,8 @@ async function initialize() {
   try { db.run('ALTER TABLE sessions ADD COLUMN start_time TEXT'); } catch (e) { /* already exists */ }
   // Add extra_data column for custom registration fields
   try { db.run('ALTER TABLE registrations ADD COLUMN extra_data TEXT'); } catch (e) { /* already exists */ }
+  // Add fingerprint column for browser fingerprinting
+  try { db.run('ALTER TABLE registrations ADD COLUMN fingerprint TEXT'); } catch (e) { /* already exists */ }
 
   save();
   return db;
@@ -383,6 +389,7 @@ module.exports = {
   initialize,
   taipeiNow,
   runSql,
+  querySql,
   getSettingValue,
   setSettingValue,
   isAdminPasswordSet,

@@ -1872,3 +1872,28 @@ select.form-input option {
   overscroll-behavior: contain;
   scroll-behavior: smooth;
 }
+
+/* ─── Suspicious Multi-ID Badge ────────────────────────────────── */
+.badge-suspicious {
+  display: inline-block;
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  font-size: 0.6rem;
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: help;
+  animation: sus-blink 2s ease-in-out infinite;
+}
+
+@keyframes sus-blink {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+}

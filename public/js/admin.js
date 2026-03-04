@@ -365,7 +365,7 @@
     // ═══════════════════════════════════════════════════════════════════
     // REGISTRATIONS TABLE
     // ═══════════════════════════════════════════════════════════════════
-    function renderRegistrations() {
+    async function renderRegistrations() {
         const container = $('#registrationsList');
         const badge = $('#regCountBadge');
         badge.textContent = `${registrations.length} 人`;
@@ -374,6 +374,18 @@
             container.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><p>還沒有人報名</p></div>';
             return;
         }
+
+        // Load suspicious multi-ID data
+        let suspiciousMap = {};
+        try {
+            const susData = await api('/admin/suspicious');
+            (susData.suspicious || []).forEach(s => {
+                const ids = s.game_ids.split(',');
+                ids.forEach(id => {
+                    suspiciousMap[id] = ids.filter(x => x !== id).join(', ');
+                });
+            });
+        } catch (e) { /* ignore */ }
 
         let html = `
       <table class="reg-table">
@@ -392,10 +404,13 @@
 
         registrations.forEach((reg, idx) => {
             const lateTag = reg.is_late_flagged ? `<span class="badge-late">⚠ 遲到 ×${reg.late_count || 1}</span>` : '';
+            const susTag = suspiciousMap[reg.game_id]
+                ? `<span class="badge-suspicious" title="也使用過：${escapeHtml(suspiciousMap[reg.game_id])}">🔍 多重ID</span>`
+                : '';
             html += `
         <tr data-id="${reg.id}">
           <td class="rank">${idx + 1}</td>
-          <td class="game-id">${escapeHtml(reg.game_id)} ${lateTag}</td>
+          <td class="game-id">${escapeHtml(reg.game_id)} ${lateTag} ${susTag}</td>
           <td>${escapeHtml(reg.display_name)}</td>
           <td class="timestamp">${formatTime(reg.registered_at)}</td>
           <td>

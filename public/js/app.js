@@ -16,6 +16,26 @@
         muted: localStorage.getItem('queue_muted') === 'true'
     };
 
+    // ─── Browser Fingerprint ──────────────────────────────────────────
+    function generateFingerprint() {
+        const raw = [
+            screen.width, screen.height, screen.colorDepth,
+            Intl.DateTimeFormat().resolvedOptions().timeZone,
+            navigator.language,
+            navigator.platform,
+            navigator.hardwareConcurrency || 0,
+            new Date().getTimezoneOffset()
+        ].join('|');
+        // Simple hash
+        let hash = 0;
+        for (let i = 0; i < raw.length; i++) {
+            hash = ((hash << 5) - hash) + raw.charCodeAt(i);
+            hash |= 0;
+        }
+        return Math.abs(hash).toString(36);
+    }
+    const browserFingerprint = generateFingerprint();
+
     // ─── Browser Notifications ─────────────────────────────────────────
     function requestNotifPermission() {
         if ('Notification' in window && Notification.permission === 'default') {
@@ -399,7 +419,7 @@
             const res = await fetch('/api/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ gameId, displayName, extraData })
+                body: JSON.stringify({ gameId, displayName, extraData, fingerprint: browserFingerprint })
             });
             const data = await res.json();
 
