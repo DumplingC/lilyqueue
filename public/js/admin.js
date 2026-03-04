@@ -1581,6 +1581,103 @@
         } catch (e) { showToast(e.message, 'error'); }
     });
 
+    // ═══════════════════════════════════════════════════════════════════
+    // FORM PREVIEW
+    // ═══════════════════════════════════════════════════════════════════
+    $('#previewFormBtn').addEventListener('click', () => {
+        const modal = $('#formPreviewModal');
+        const content = $('#formPreviewContent');
+        const isVisible = modal.style.display !== 'none';
+        if (isVisible) {
+            modal.style.display = 'none';
+            return;
+        }
+        let html = `
+            <div class="form-group" style="margin-bottom:8px;">
+                <label style="font-size:0.75rem;">遊戲 ID *</label>
+                <input type="text" class="form-input" placeholder="輸入遊戲 ID" disabled>
+            </div>
+            <div class="form-group" style="margin-bottom:8px;">
+                <label style="font-size:0.75rem;">顯示名稱（選填）</label>
+                <input type="text" class="form-input" placeholder="聊天室中顯示的名稱" disabled>
+            </div>`;
+        customFields.forEach(f => {
+            html += `
+            <div class="form-group" style="margin-bottom:8px;">
+                <label style="font-size:0.75rem;">${escapeHtml(f.label)}${f.required ? ' *' : ''}</label>
+                <input type="${f.type || 'text'}" class="form-input" placeholder="${escapeHtml(f.label)}" disabled>
+            </div>`;
+        });
+        html += `<button class="btn btn-primary btn-block" disabled>🚀 確認報名</button>`;
+        content.innerHTML = html;
+        modal.style.display = '';
+        showToast('👁️ 表單預覽已顯示');
+    });
+
+    // ═══════════════════════════════════════════════════════════════════
+    // DRAG & DROP REORDER REGISTRATIONS
+    // ═══════════════════════════════════════════════════════════════════
+    function enableDragReorder() {
+        const tbody = document.querySelector('#registrationsList tbody');
+        if (!tbody) return;
+        let dragRow = null;
+
+        tbody.querySelectorAll('tr').forEach(row => {
+            row.setAttribute('draggable', 'true');
+            row.style.cursor = 'grab';
+
+            row.addEventListener('dragstart', (e) => {
+                dragRow = row;
+                row.style.opacity = '0.4';
+                e.dataTransfer.effectAllowed = 'move';
+            });
+
+            row.addEventListener('dragend', () => {
+                row.style.opacity = '1';
+                dragRow = null;
+                tbody.querySelectorAll('tr').forEach(r => r.classList.remove('drag-over'));
+            });
+
+            row.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                row.classList.add('drag-over');
+            });
+
+            row.addEventListener('dragleave', () => {
+                row.classList.remove('drag-over');
+            });
+
+            row.addEventListener('drop', (e) => {
+                e.preventDefault();
+                row.classList.remove('drag-over');
+                if (dragRow && dragRow !== row) {
+                    const allRows = [...tbody.querySelectorAll('tr')];
+                    const dragIdx = allRows.indexOf(dragRow);
+                    const dropIdx = allRows.indexOf(row);
+                    if (dragIdx < dropIdx) {
+                        tbody.insertBefore(dragRow, row.nextSibling);
+                    } else {
+                        tbody.insertBefore(dragRow, row);
+                    }
+                    // Update rank numbers
+                    tbody.querySelectorAll('tr').forEach((r, i) => {
+                        const rankTd = r.querySelector('.rank');
+                        if (rankTd) rankTd.textContent = i + 1;
+                    });
+                    showToast('📋 順序已調整（僅影響顯示）');
+                }
+            });
+        });
+    }
+
+    // Hook into renderRegistrations to enable drag after render
+    const origRender = renderRegistrations;
+    renderRegistrations = async function () {
+        await origRender.call(this);
+        enableDragReorder();
+    };
+
     // ─── Init ─────────────────────────────────────────────────────────
     checkAuth();
     loadTheme();

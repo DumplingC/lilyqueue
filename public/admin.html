@@ -487,6 +487,16 @@
                         <button class="btn btn-primary btn-block" id="saveCustomFieldsBtn" style="margin-top:8px;">
                             💾 儲存欄位設定
                         </button>
+                        <button class="btn btn-outline btn-block" id="previewFormBtn" style="margin-top:6px;">
+                            👁️ 預覽報名表單
+                        </button>
+                        <!-- Form Preview Modal -->
+                        <div id="formPreviewModal"
+                            style="display:none; margin-top:10px; padding:12px; border:2px dashed var(--border-color); border-radius:8px; background:var(--bg-card);">
+                            <h3 style="font-size:0.85rem; margin-bottom:8px; color:var(--accent-primary);">📋 報名表單預覽
+                            </h3>
+                            <div id="formPreviewContent"></div>
+                        </div>
                     </div>
 
                     <!-- Late Records -->

@@ -1967,3 +1967,9 @@ select.form-input option {
   padding: 0 3px;
   border-radius: 3px;
 }
+
+/* ─── Drag Reorder ─────────────────────────────────────────────── */
+.drag-over {
+  border-top: 2px solid var(--accent-primary) !important;
+  background: var(--bg-glass-strong);
+}
