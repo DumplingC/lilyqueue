@@ -157,7 +157,7 @@ router.post('/register', (req, res) => {
                 totalRegistered: count,
                 isLateFlagged: !!result.isLateFlagged,
                 lateCount: result.lateCount,
-                registeredAt: new Date().toISOString()
+                registeredAt: db.taipeiNow()
             });
         }
 
@@ -365,12 +365,27 @@ router.post('/admin/publish', requireAdmin, (req, res) => {
     res.json({ message: '結果已公布' });
 });
 
+// Admin announcement
+router.post('/admin/announce', requireAdmin, (req, res) => {
+    const message = sanitizeMessage(req.body.message);
+    if (!message) {
+        return res.status(400).json({ error: '請輸入公告內容' });
+    }
+    if (req.app.io) {
+        req.app.io.emit('admin:announcement', {
+            message,
+            sentAt: db.taipeiNow()
+        });
+    }
+    res.json({ message: '公告已發送' });
+});
+
 // Upload background image
 router.post('/admin/upload-bg', requireAdmin, upload.single('background'), (req, res) => {
     if (!req.file) {
         return res.status(400).json({ error: '請選擇圖片檔案' });
     }
-    const bgUrl = '/uploads/' + req.file.filename;
+    const bgUrl = '/uploads/' + req.file.filename + '?t=' + Date.now();
     db.setSettingValue('background_image', bgUrl);
 
     if (req.app.io) {
@@ -380,10 +395,25 @@ router.post('/admin/upload-bg', requireAdmin, upload.single('background'), (req,
     res.json({ url: bgUrl, message: '背景圖片已上傳' });
 });
 
-// Get background image
+// Get background image and settings
 router.get('/background', (req, res) => {
     const bgUrl = db.getSettingValue('background_image');
-    res.json({ url: bgUrl });
+    const bgPosition = db.getSettingValue('background_position', 'center center');
+    const bgSize = db.getSettingValue('background_size', 'cover');
+    res.json({ url: bgUrl, position: bgPosition, size: bgSize });
+});
+
+// Save background settings (position/size)
+router.put('/admin/background-settings', requireAdmin, (req, res) => {
+    if (req.body.position) db.setSettingValue('background_position', sanitize(req.body.position));
+    if (req.body.size) db.setSettingValue('background_size', sanitize(req.body.size));
+    if (req.app.io) {
+        const bgUrl = db.getSettingValue('background_image');
+        const bgPosition = db.getSettingValue('background_position', 'center center');
+        const bgSize = db.getSettingValue('background_size', 'cover');
+        req.app.io.emit('background:updated', { url: bgUrl, position: bgPosition, size: bgSize });
+    }
+    res.json({ message: '背景設定已更新' });
 });
 
 // Remove background image

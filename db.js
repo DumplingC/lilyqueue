@@ -8,6 +8,11 @@ const DB_PATH = path.join(DB_DIR, 'queue.db');
 
 let db = null;
 
+// ─── Taipei timezone helper ────────────────────────────────────────
+function taipeiNow() {
+  return new Date().toLocaleString('sv-SE', { timeZone: 'Asia/Taipei' }).replace(' ', 'T');
+}
+
 // ─── Helper functions ──────────────────────────────────────────────
 function getOne(sql, params = []) {
   const stmt = db.prepare(sql);
@@ -146,12 +151,13 @@ function verifyAdminPassword(plainPassword) {
 
 // ─── Session management ───────────────────────────────────────────
 function createSession(title, mainSlots, waitlistSlots, latePolicy) {
+  const now = taipeiNow();
   // Close any currently open sessions first
-  runSql("UPDATE sessions SET status = 'closed', closed_at = datetime('now', 'localtime') WHERE status = 'open'");
+  runSql("UPDATE sessions SET status = 'closed', closed_at = ? WHERE status = 'open'", [now]);
 
   runSql(
-    'INSERT INTO sessions (title, main_slots, waitlist_slots, late_policy) VALUES (?, ?, ?, ?)',
-    [title || '', mainSlots || 4, waitlistSlots || 2, latePolicy || 'waitlist']
+    'INSERT INTO sessions (title, main_slots, waitlist_slots, late_policy, created_at) VALUES (?, ?, ?, ?, ?)',
+    [title || '', mainSlots || 4, waitlistSlots || 2, latePolicy || 'waitlist', now]
   );
 
   return getLastInsertRowId();
@@ -162,7 +168,7 @@ function getActiveSession() {
 }
 
 function closeSession(sessionId) {
-  runSql("UPDATE sessions SET status = 'closed', closed_at = datetime('now', 'localtime') WHERE id = ?", [sessionId]);
+  runSql("UPDATE sessions SET status = 'closed', closed_at = ? WHERE id = ?", [taipeiNow(), sessionId]);
 }
 
 function updateSession(sessionId, fields) {
@@ -186,8 +192,8 @@ function addRegistration(sessionId, gameId, displayName) {
   const isLateFlagged = lateRecord ? 1 : 0;
 
   runSql(
-    'INSERT INTO registrations (session_id, game_id, display_name, is_late_flagged) VALUES (?, ?, ?, ?)',
-    [sessionId, gameId, displayName || gameId, isLateFlagged]
+    'INSERT INTO registrations (session_id, game_id, display_name, is_late_flagged, registered_at) VALUES (?, ?, ?, ?, ?)',
+    [sessionId, gameId, displayName || gameId, isLateFlagged, taipeiNow()]
   );
 
   const id = getLastInsertRowId();
@@ -289,16 +295,17 @@ function getLateRecord(gameId) {
 }
 
 function markLate(gameId, displayName) {
+  const now = taipeiNow();
   const existing = getLateRecord(gameId);
   if (existing) {
     runSql(
-      "UPDATE late_records SET count = count + 1, last_marked_at = datetime('now', 'localtime'), display_name = COALESCE(?, display_name) WHERE game_id = ?",
-      [displayName, gameId]
+      'UPDATE late_records SET count = count + 1, last_marked_at = ?, display_name = COALESCE(?, display_name) WHERE game_id = ?',
+      [now, displayName, gameId]
     );
   } else {
     runSql(
-      'INSERT INTO late_records (game_id, display_name) VALUES (?, ?)',
-      [gameId, displayName || gameId]
+      'INSERT INTO late_records (game_id, display_name, last_marked_at, created_at) VALUES (?, ?, ?, ?)',
+      [gameId, displayName || gameId, now, now]
     );
   }
   // Also flag in current session registration
@@ -322,8 +329,8 @@ function getAllLateRecords() {
 // ─── Chat ──────────────────────────────────────────────────────────
 function addChatMessage(sessionId, gameId, displayName, message, isAdmin = false) {
   runSql(
-    'INSERT INTO chat_messages (session_id, game_id, display_name, message, is_admin) VALUES (?, ?, ?, ?, ?)',
-    [sessionId, gameId, displayName, message, isAdmin ? 1 : 0]
+    'INSERT INTO chat_messages (session_id, game_id, display_name, message, is_admin, sent_at) VALUES (?, ?, ?, ?, ?, ?)',
+    [sessionId, gameId, displayName, message, isAdmin ? 1 : 0, taipeiNow()]
   );
   return getLastInsertRowId();
 }
@@ -345,6 +352,7 @@ function closeDatabase() {
 
 module.exports = {
   initialize,
+  taipeiNow,
   getSettingValue,
   setSettingValue,
   isAdminPasswordSet,

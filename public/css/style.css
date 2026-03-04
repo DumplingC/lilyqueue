@@ -1103,3 +1103,159 @@ select.form-input option {
     width: 100%;
   }
 }
+
+/* ─── Chat Layout with Sidebar ───────────────────────────────────── */
+.chat-layout {
+  display: flex;
+  gap: 12px;
+}
+
+.chat-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.chat-sidebar {
+  width: 180px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sidebar-header {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: 8px 10px;
+  background: var(--bg-glass);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color-light);
+}
+
+.online-list {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 220px;
+  padding: 6px;
+  background: var(--bg-glass);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color-light);
+}
+
+.online-empty {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 16px 0;
+}
+
+.online-user {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  margin-bottom: 3px;
+  font-size: 0.8rem;
+  transition: background var(--transition-fast);
+}
+
+.online-user:hover {
+  background: var(--bg-glass-strong);
+}
+
+.online-status-icon {
+  font-size: 0.6rem;
+  line-height: 1;
+}
+
+.online-name {
+  flex: 1;
+  font-weight: 500;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.online-user-status {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.my-status-selector {
+  padding: 8px 10px;
+  background: var(--bg-glass);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color-light);
+}
+
+.my-status-selector select {
+  margin-top: 4px;
+}
+
+/* ─── Announcement Banner ────────────────────────────────────────── */
+.announcement-banner {
+  width: 100%;
+  padding: 12px 18px;
+  background: linear-gradient(135deg, rgba(255, 179, 71, 0.2) 0%, rgba(124, 92, 255, 0.2) 100%);
+  border: 1px solid rgba(255, 179, 71, 0.4);
+  border-radius: var(--radius-md);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: fadeInUp 0.3s ease;
+}
+
+.announcement-icon {
+  font-size: 1.3rem;
+}
+
+.announcement-text {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--accent-warning);
+  flex: 1;
+}
+
+.announcement-flash {
+  animation: announcePulse 1s ease;
+}
+
+@keyframes announcePulse {
+
+  0%,
+  100% {
+    box-shadow: none;
+  }
+
+  50% {
+    box-shadow: 0 0 20px rgba(255, 179, 71, 0.4), 0 0 40px rgba(255, 179, 71, 0.2);
+  }
+}
+
+/* ─── Responsive: Chat Sidebar ───────────────────────────────────── */
+@media (max-width: 600px) {
+  .chat-layout {
+    flex-direction: column;
+  }
+
+  .chat-sidebar {
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .online-list {
+    max-height: 120px;
+    flex: 1;
+    min-width: 100%;
+  }
+
+  .my-status-selector {
+    flex: 1;
+  }
+}

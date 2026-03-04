@@ -11,6 +11,12 @@
 
 <body>
   <div class="container" id="app">
+    <!-- Announcement Banner -->
+    <div class="announcement-banner" id="announcementBanner" style="display: none;">
+      <span class="announcement-icon">📢</span>
+      <span class="announcement-text" id="announcementText"></span>
+    </div>
+
     <!-- Header -->
     <div class="header">
       <h1>🎮 莉刻報名系統</h1>
@@ -54,21 +60,26 @@
       </form>
     </div>
 
-    <!-- Success Card (shows after registration) -->
-    <div class="card success-card" id="successCard" style="display: none;">
-      <div class="success-icon">✅</div>
-      <h3>報名成功！</h3>
-      <p>已收到您的報名資料</p>
-      <p id="registeredGameId" style="color: var(--accent-primary-light); font-weight: 600;"></p>
-      <div class="queue-position" id="queuePosition">
-        <span>📋</span> 排隊順序：第 <strong id="positionNum">-</strong> 位
-      </div>
-      <div id="lateWarning" style="display: none; margin-top: 12px;">
-        <span class="badge-late">⚠️ 此帳號有遲到紀錄</span>
-      </div>
-      <div id="myStatusDisplay" style="margin-top: 16px; display: none;">
-        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 6px;">您的狀態</p>
-        <span class="badge" id="myStatusBadge"></span>
+    <!-- Status Card (shows after registration - dynamic status) -->
+    <div class="card" id="statusDisplayCard" style="display: none;">
+      <div id="reviewingView">
+        <div class="success-card">
+          <div class="success-icon" id="statusIcon">⏳</div>
+          <h3 id="statusTitle">等待管理員審核</h3>
+          <p id="statusMessage">已收到您的報名資料，請等待主辦人審核</p>
+          <p id="registeredGameId" style="color: var(--accent-primary-light); font-weight: 600;"></p>
+          <div class="queue-position" id="queuePosition">
+            <span>📋</span> 排隊順序：第 <strong id="positionNum">-</strong> 位
+          </div>
+          <div id="lateWarning"
+            style="display: none; margin-top: 12px; padding: 10px; background: rgba(255,179,71,0.1); border: 1px solid rgba(255,179,71,0.3); border-radius: 8px;">
+            <span style="color: var(--accent-warning); font-weight: 600;">⚠️ 您有遲到紀錄，將由管理員決定是否錄取</span>
+          </div>
+          <div id="myStatusDisplay" style="margin-top: 16px;">
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 6px;">您的審核狀態</p>
+            <span class="badge badge-pending" id="myStatusBadge">⏳ 審核中</span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -90,21 +101,42 @@
       <div class="results-section" id="resultsContent"></div>
     </div>
 
-    <!-- Chat -->
+    <!-- Chat with Online List -->
     <div class="card chat-container" id="chatCard" style="display: none;">
       <div class="card-header">
         <span class="icon">💬</span>
         <h2>聊天室</h2>
         <span class="badge badge-open" id="chatOnlineBadge">在線</span>
       </div>
-      <div class="chat-messages" id="chatMessages">
-        <div class="empty-state" id="chatEmpty">
-          <p style="font-size: 0.8rem;">還沒有訊息，來打個招呼吧！</p>
+      <div class="chat-layout">
+        <div class="chat-main">
+          <div class="chat-messages" id="chatMessages">
+            <div class="empty-state" id="chatEmpty">
+              <p style="font-size: 0.8rem;">還沒有訊息，來打個招呼吧！</p>
+            </div>
+          </div>
+          <div class="chat-input-row">
+            <input type="text" class="form-input" id="chatInput" placeholder="輸入訊息..." maxlength="500"
+              autocomplete="off">
+            <button class="btn btn-primary" id="chatSendBtn">發送</button>
+          </div>
         </div>
-      </div>
-      <div class="chat-input-row">
-        <input type="text" class="form-input" id="chatInput" placeholder="輸入訊息..." maxlength="500" autocomplete="off">
-        <button class="btn btn-primary" id="chatSendBtn">發送</button>
+        <div class="chat-sidebar">
+          <div class="sidebar-header">
+            <span>👥</span> 在線名單
+          </div>
+          <div class="online-list" id="onlineList">
+            <p class="online-empty">暫無在線用戶</p>
+          </div>
+          <div class="my-status-selector">
+            <label style="font-size: 0.75rem; color: var(--text-muted);">我的狀態</label>
+            <select class="form-input" id="myUserStatus" style="padding: 6px 10px; font-size: 0.8rem;">
+              <option value="在線">🟢 在線</option>
+              <option value="暫離">🟡 暫離</option>
+              <option value="稍等一下">🔴 稍等一下</option>
+            </select>
+          </div>
+        </div>
       </div>
     </div>
   </div>

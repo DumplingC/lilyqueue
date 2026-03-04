@@ -153,6 +153,7 @@
         loadSessionData();
         loadBackground();
         loadLateRecords();
+        loadChatMessages();
         setupShareUrl();
     }
 
@@ -582,13 +583,40 @@
         }
     });
 
+    // Save background settings (position/size)
+    $('#saveBgSettingsBtn').addEventListener('click', async () => {
+        const posX = $('#bgPosX').value;
+        const posY = $('#bgPosY').value;
+        const size = $('#bgSizeSelect').value;
+        try {
+            await api('/admin/background-settings', {
+                method: 'PUT',
+                body: { position: `${posX} ${posY}`, size }
+            });
+            showToast('背景設定已儲存');
+        } catch (e) {
+            showToast(e.message, 'error');
+        }
+    });
+
     async function loadBackground() {
         try {
             const data = await fetch('/api/background').then(r => r.json());
             if (data.url) {
                 document.body.style.backgroundImage = `url(${data.url})`;
+                document.body.style.backgroundPosition = data.position || 'center center';
+                document.body.style.backgroundSize = data.size || 'cover';
                 document.body.classList.add('has-bg-image');
                 showBgPreview(data.url);
+                // Set editor values
+                if (data.position) {
+                    const [posX, posY] = data.position.split(' ');
+                    if ($('#bgPosX')) $('#bgPosX').value = posX || 'center';
+                    if ($('#bgPosY')) $('#bgPosY').value = posY || 'center';
+                }
+                if (data.size && $('#bgSizeSelect')) {
+                    $('#bgSizeSelect').value = data.size;
+                }
             }
         } catch (e) { /* ignore */ }
     }
@@ -645,6 +673,26 @@
         soundEnabled = !soundEnabled;
         localStorage.setItem('sound_enabled', soundEnabled);
         soundToggle.textContent = soundEnabled ? '🔔' : '🔕';
+    });
+
+    // ─── Announcement ─────────────────────────────────────────────────
+    $('#announceBtn').addEventListener('click', async () => {
+        const msg = $('#announceInput').value.trim();
+        if (!msg) { showToast('請輸入公告內容', 'error'); return; }
+        try {
+            await api('/admin/announce', { method: 'POST', body: { message: msg } });
+            showToast('公告已發送');
+            $('#announceInput').value = '';
+        } catch (e) {
+            showToast(e.message, 'error');
+        }
+    });
+
+    // Quick templates
+    $$('.announce-tpl').forEach(btn => {
+        btn.addEventListener('click', () => {
+            $('#announceInput').value = btn.textContent.trim();
+        });
     });
 
     // Change password

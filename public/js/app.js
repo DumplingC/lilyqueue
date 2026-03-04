@@ -11,7 +11,8 @@
         gameId: null,
         displayName: null,
         sessionActive: false,
-        resultsPublished: false
+        resultsPublished: false,
+        myStatus: 'pending' // pending | selected | waitlist | rejected
     };
 
     // ─── Socket.IO connection ─────────────────────────────────────────
@@ -25,7 +26,7 @@
     const progressFill = $('#progressFill');
     const sessionTitle = $('#sessionTitle');
     const registerCard = $('#registerCard');
-    const successCard = $('#successCard');
+    const statusDisplayCard = $('#statusDisplayCard');
     const closedCard = $('#closedCard');
     const resultsCard = $('#resultsCard');
     const chatCard = $('#chatCard');
@@ -83,6 +84,8 @@
             const data = await res.json();
             if (data.url) {
                 document.body.style.backgroundImage = `url(${data.url})`;
+                document.body.style.backgroundPosition = data.position || 'center center';
+                document.body.style.backgroundSize = data.size || 'cover';
                 document.body.classList.add('has-bg-image');
             }
         } catch (e) { /* ignore */ }
@@ -120,12 +123,12 @@
 
             if (state.registered) {
                 registerCard.style.display = 'none';
-                successCard.style.display = '';
+                statusDisplayCard.style.display = '';
                 closedCard.style.display = 'none';
                 chatCard.style.display = '';
             } else {
                 registerCard.style.display = '';
-                successCard.style.display = 'none';
+                statusDisplayCard.style.display = 'none';
                 closedCard.style.display = 'none';
                 chatCard.style.display = 'none';
             }
@@ -143,11 +146,50 @@
             progressFill.style.width = '0%';
 
             registerCard.style.display = 'none';
-            successCard.style.display = 'none';
+            statusDisplayCard.style.display = 'none';
             closedCard.style.display = '';
             chatCard.style.display = 'none';
             resultsCard.style.display = 'none';
         }
+    }
+
+    // ─── Update my status display ─────────────────────────────────────
+    function updateMyStatusUI(status) {
+        state.myStatus = status;
+        const statusIcon = $('#statusIcon');
+        const statusTitle = $('#statusTitle');
+        const statusMessage = $('#statusMessage');
+        const badge = $('#myStatusBadge');
+
+        const statusMap = {
+            pending: {
+                icon: '⏳', title: '等待管理員審核',
+                message: '已收到您的報名資料，請等待主辦人審核',
+                badge: '⏳ 審核中', badgeClass: 'badge badge-pending'
+            },
+            selected: {
+                icon: '🎉', title: '報名成功！已錄取',
+                message: '恭喜！您已被錄取為正選',
+                badge: '✅ 正選錄取', badgeClass: 'badge badge-selected'
+            },
+            waitlist: {
+                icon: '📋', title: '備取中',
+                message: '您目前列為備取，請等待最終結果',
+                badge: '📋 備取', badgeClass: 'badge badge-waitlist'
+            },
+            rejected: {
+                icon: '❌', title: '未錄取',
+                message: '很抱歉，本次未被錄取',
+                badge: '❌ 未錄取', badgeClass: 'badge badge-rejected'
+            }
+        };
+
+        const s = statusMap[status] || statusMap.pending;
+        statusIcon.textContent = s.icon;
+        statusTitle.textContent = s.title;
+        statusMessage.textContent = s.message;
+        badge.textContent = s.badge;
+        badge.className = s.badgeClass;
     }
 
     // ─── Check own status ─────────────────────────────────────────────
@@ -160,7 +202,7 @@
             if (data.registered) {
                 state.registered = true;
                 registerCard.style.display = 'none';
-                successCard.style.display = '';
+                statusDisplayCard.style.display = '';
                 chatCard.style.display = '';
 
                 $('#registeredGameId').textContent = `遊戲 ID：${state.gameId}`;
@@ -170,21 +212,8 @@
                     $('#lateWarning').style.display = '';
                 }
 
-                if (data.resultsPublished) {
-                    const myStatusDisplay = $('#myStatusDisplay');
-                    const badge = $('#myStatusBadge');
-                    myStatusDisplay.style.display = '';
-
-                    const statusMap = {
-                        selected: { text: '🎉 正選錄取', class: 'badge-selected' },
-                        waitlist: { text: '📋 備取', class: 'badge-waitlist' },
-                        rejected: { text: '❌ 未錄取', class: 'badge-rejected' },
-                        pending: { text: '⏳ 等待中', class: 'badge-pending' }
-                    };
-                    const s = statusMap[data.status] || statusMap.pending;
-                    badge.textContent = s.text;
-                    badge.className = `badge ${s.class}`;
-                }
+                // Update status display
+                updateMyStatusUI(data.status);
 
                 // Join chat room
                 socket.emit('join:registered', { gameId: state.gameId, displayName: state.displayName });
@@ -227,30 +256,28 @@
                 return;
             }
 
-            // Success!
+            // Success - show reviewing state
             state.registered = true;
             state.gameId = gameId;
             state.displayName = displayName || gameId;
             saveState();
 
             registerCard.style.display = 'none';
-            successCard.style.display = '';
+            statusDisplayCard.style.display = '';
             chatCard.style.display = '';
 
             $('#registeredGameId').textContent = `遊戲 ID：${gameId}`;
             $('#positionNum').textContent = data.position;
+            updateMyStatusUI('pending'); // Show "waiting for review"
 
             if (data.isLateFlagged) {
                 $('#lateWarning').style.display = '';
             }
 
-            showToast(data.message);
+            showToast('報名資料已送出，等待管理員審核');
 
             // Join chat
             socket.emit('join:registered', { gameId: state.gameId, displayName: state.displayName });
-
-            // Load existing chat messages
-            loadChatMessages();
 
         } catch (err) {
             showToast('網路錯誤，請稍後再試', 'error');
@@ -277,7 +304,6 @@
                     content.innerHTML += renderResultGroup('📋 備取名單', data.waitlist, 'waitlist');
                 }
 
-                // Also update own status
                 await checkMyStatus();
             }
         } catch (e) { /* ignore */ }
@@ -298,16 +324,35 @@
         return html;
     }
 
+    // ─── Online List ──────────────────────────────────────────────────
+    function updateOnlineList(users) {
+        const container = $('#onlineList');
+        if (!users || users.length === 0) {
+            container.innerHTML = '<p class="online-empty">暫無在線用戶</p>';
+            $('#chatOnlineBadge').textContent = `0 人在線`;
+            return;
+        }
+
+        $('#chatOnlineBadge').textContent = `${users.length} 人在線`;
+
+        let html = '';
+        users.forEach(user => {
+            const statusIcon = user.userStatus === '在線' ? '🟢' : user.userStatus === '暫離' ? '🟡' : '🔴';
+            html += `
+              <div class="online-user">
+                <span class="online-status-icon">${statusIcon}</span>
+                <span class="online-name">${escapeHtml(user.displayName)}</span>
+                <span class="online-user-status">${user.userStatus}</span>
+              </div>`;
+        });
+        container.innerHTML = html;
+    }
+
     // ─── Chat ─────────────────────────────────────────────────────────
     const chatMessages = $('#chatMessages');
     const chatInput = $('#chatInput');
     const chatSendBtn = $('#chatSendBtn');
     const chatEmpty = $('#chatEmpty');
-
-    async function loadChatMessages() {
-        // Load existing messages via a simple trick: listen for socket events
-        // Since we're public, we'll get messages via socket only
-    }
 
     function addChatMessage(msg) {
         if (chatEmpty) chatEmpty.style.display = 'none';
@@ -337,6 +382,14 @@
         if (e.key === 'Enter') sendChat();
     });
 
+    // ─── User status selector ─────────────────────────────────────────
+    const myUserStatus = $('#myUserStatus');
+    if (myUserStatus) {
+        myUserStatus.addEventListener('change', () => {
+            socket.emit('user:status-change', { status: myUserStatus.value });
+        });
+    }
+
     // ─── Socket events ───────────────────────────────────────────────
     socket.on('connect', () => {
         loadStatus();
@@ -351,19 +404,20 @@
         statusText.textContent = '連線中斷';
     });
 
-    socket.on('session:updated', (data) => {
+    socket.on('session:updated', () => {
         loadStatus();
     });
 
-    socket.on('registration:new', (data) => {
+    socket.on('registration:new', () => {
         loadStatus();
     });
 
     socket.on('registrations:updated', () => {
         if (state.registered) checkMyStatus();
+        loadStatus();
     });
 
-    socket.on('results:published', (data) => {
+    socket.on('results:published', () => {
         state.resultsPublished = true;
         loadResults();
         showToast('🎉 錄取結果已公布！');
@@ -372,6 +426,8 @@
     socket.on('background:updated', (data) => {
         if (data.url) {
             document.body.style.backgroundImage = `url(${data.url})`;
+            document.body.style.backgroundPosition = data.position || 'center center';
+            document.body.style.backgroundSize = data.size || 'cover';
             document.body.classList.add('has-bg-image');
         } else {
             document.body.style.backgroundImage = '';
@@ -381,6 +437,19 @@
 
     socket.on('chat:message', (msg) => {
         addChatMessage(msg);
+    });
+
+    socket.on('onlineList:updated', (users) => {
+        updateOnlineList(users);
+    });
+
+    socket.on('admin:announcement', (data) => {
+        const banner = $('#announcementBanner');
+        const text = $('#announcementText');
+        text.textContent = data.message;
+        banner.style.display = '';
+        banner.classList.add('announcement-flash');
+        setTimeout(() => banner.classList.remove('announcement-flash'), 1000);
     });
 
     // ─── Utilities ────────────────────────────────────────────────────
@@ -394,12 +463,16 @@
     function formatTime(isoStr) {
         if (!isoStr) return '';
         try {
+            // Try parsing as ISO or local time string
             const d = new Date(isoStr);
-            if (isNaN(d.getTime())) {
-                // Try parsing as local time string from SQLite
-                return isoStr.split(' ').pop() || isoStr;
+            if (!isNaN(d.getTime())) {
+                return d.toLocaleTimeString('zh-TW', {
+                    hour: '2-digit', minute: '2-digit', second: '2-digit',
+                    timeZone: 'Asia/Taipei'
+                });
             }
-            return d.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            // Fallback for SQLite format "YYYY-MM-DD HH:MM:SS"
+            return isoStr.split(/[T ]/).pop() || isoStr;
         } catch (e) {
             return isoStr;
         }

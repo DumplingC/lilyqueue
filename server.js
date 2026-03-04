@@ -80,6 +80,20 @@ app.get('/api/server-info', (req, res) => {
 
 // ─── Socket.IO ────────────────────────────────────────────────────
 let connectedClients = 0;
+const onlineUsers = new Map(); // socketId -> { gameId, displayName, userStatus }
+
+function broadcastOnlineList() {
+    const list = [];
+    for (const [, user] of onlineUsers) {
+        list.push({
+            gameId: user.gameId,
+            displayName: user.displayName,
+            userStatus: user.userStatus || '在線'
+        });
+    }
+    io.to('registered').emit('onlineList:updated', list);
+    io.to('admin').emit('onlineList:updated', list);
+}
 
 io.on('connection', (socket) => {
     connectedClients++;
@@ -91,6 +105,22 @@ io.on('connection', (socket) => {
             socket.gameId = data.gameId;
             socket.displayName = data.displayName || data.gameId;
             socket.join('registered');
+            onlineUsers.set(socket.id, {
+                gameId: data.gameId,
+                displayName: data.displayName || data.gameId,
+                userStatus: '在線'
+            });
+            broadcastOnlineList();
+        }
+    });
+
+    // User status change (暫離, 在線, etc.)
+    socket.on('user:status-change', (data) => {
+        if (data && data.status && onlineUsers.has(socket.id)) {
+            const allowed = ['在線', '暫離', '稍等一下'];
+            const status = allowed.includes(data.status) ? data.status : '在線';
+            onlineUsers.get(socket.id).userStatus = status;
+            broadcastOnlineList();
         }
     });
 
@@ -100,6 +130,7 @@ io.on('connection', (socket) => {
         if (data && data.token === validToken) {
             socket.join('admin');
             socket.isAdmin = true;
+            broadcastOnlineList(); // Send current list to new admin
         }
     });
 
@@ -118,14 +149,13 @@ io.on('connection', (socket) => {
             displayName = '🎮 主辦人';
             isAdmin = true;
         } else if (socket.gameId) {
-            // Verify the user is registered
             const reg = db.getRegistrationByGameId(session.id, socket.gameId);
-            if (!reg) return; // Not registered, ignore
+            if (!reg) return;
             gameId = socket.gameId;
             displayName = socket.displayName || socket.gameId;
             isAdmin = false;
         } else {
-            return; // Not authenticated
+            return;
         }
 
         const msgId = db.addChatMessage(session.id, gameId, displayName, message, isAdmin);
@@ -136,10 +166,9 @@ io.on('connection', (socket) => {
             displayName,
             message,
             isAdmin,
-            sentAt: new Date().toISOString()
+            sentAt: db.taipeiNow()
         };
 
-        // Broadcast to registered users and admins
         io.to('registered').emit('chat:message', chatMsg);
         io.to('admin').emit('chat:message', chatMsg);
     });
@@ -147,6 +176,10 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => {
         connectedClients = Math.max(0, connectedClients - 1);
         io.emit('clients:count', connectedClients);
+        if (onlineUsers.has(socket.id)) {
+            onlineUsers.delete(socket.id);
+            broadcastOnlineList();
+        }
     });
 });
 
