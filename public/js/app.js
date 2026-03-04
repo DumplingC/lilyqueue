@@ -12,8 +12,23 @@
         displayName: null,
         sessionActive: false,
         resultsPublished: false,
-        myStatus: 'pending' // pending | selected | waitlist | rejected
+        myStatus: 'pending'
     };
+
+    // ─── Browser Notifications ─────────────────────────────────────────
+    function requestNotifPermission() {
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+    }
+
+    function sendBrowserNotif(title, body) {
+        if ('Notification' in window && Notification.permission === 'granted') {
+            try {
+                new Notification(title, { body, icon: '🎮', tag: 'lily-queue' });
+            } catch (e) { /* mobile might not support */ }
+        }
+    }
 
     // ─── Socket.IO connection ─────────────────────────────────────────
     const socket = io({ transports: ['websocket', 'polling'] });
@@ -121,6 +136,9 @@
             const pct = total > 0 ? Math.min(100, ((data.currentCount || 0) / total) * 100) : 0;
             progressFill.style.width = pct + '%';
 
+            // Countdown timer
+            startCountdown(data.startTime);
+
             if (state.registered) {
                 registerCard.style.display = 'none';
                 statusDisplayCard.style.display = '';
@@ -221,7 +239,9 @@
                         rejected: '❌ 很抱歉，本次未被錄取',
                         pending: '⏳ 您的審核狀態已變更為等待中'
                     };
-                    showToast(toastMap[data.status] || '您的審核狀態已更新');
+                    const msg = toastMap[data.status] || '您的審核狀態已更新';
+                    showToast(msg);
+                    sendBrowserNotif('莉刻報名系統', msg);
                 }
 
                 // Join chat room
@@ -519,6 +539,15 @@
         banner.style.display = '';
         banner.classList.add('announcement-flash');
         setTimeout(() => banner.classList.remove('announcement-flash'), 1000);
+        sendBrowserNotif('📢 公告', data.message);
+    });
+
+    socket.on('user:kicked', () => {
+        showToast('⚠️ 您已被管理員移出聊天室', 'error');
+        state.registered = false;
+        state.gameId = null;
+        sessionStorage.removeItem('queue_state');
+        loadStatus();
     });
 
     socket.on('chat:cleared', () => {
@@ -591,9 +620,44 @@
     // Listen for real-time theme changes
     socket.on('theme:updated', applyTheme);
 
+    // ─── Countdown Timer ────────────────────────────────────────────────
+    let countdownInterval = null;
+
+    function startCountdown(startTimeStr) {
+        const timerEl = $('#countdownTimer');
+        const textEl = $('#countdownText');
+        if (countdownInterval) clearInterval(countdownInterval);
+
+        if (!startTimeStr) {
+            timerEl.style.display = 'none';
+            return;
+        }
+
+        timerEl.style.display = '';
+        const target = new Date(startTimeStr).getTime();
+
+        function update() {
+            const now = Date.now();
+            const diff = target - now;
+            if (diff <= 0) {
+                textEl.textContent = '已開始！';
+                clearInterval(countdownInterval);
+                return;
+            }
+            const h = Math.floor(diff / 3600000);
+            const m = Math.floor((diff % 3600000) / 60000);
+            const s = Math.floor((diff % 60000) / 1000);
+            textEl.textContent = `${h > 0 ? h + ':' : ''}${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
+
+        update();
+        countdownInterval = setInterval(update, 1000);
+    }
+
     // ─── Init ─────────────────────────────────────────────────────────
     restoreState();
     loadStatus();
     loadBackground();
     loadTheme();
+    requestNotifPermission();
 })();

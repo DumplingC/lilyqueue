@@ -119,6 +119,15 @@ async function initialize() {
     FOREIGN KEY (session_id) REFERENCES sessions(id)
   )`);
 
+  db.run(`CREATE TABLE IF NOT EXISTS banned_users (
+    game_id TEXT PRIMARY KEY,
+    reason TEXT DEFAULT '',
+    banned_at TEXT DEFAULT (datetime('now', 'localtime'))
+  )`);
+
+  // Add start_time column if not exists
+  try { db.run('ALTER TABLE sessions ADD COLUMN start_time TEXT'); } catch (e) { /* already exists */ }
+
   save();
   return db;
 }
@@ -392,5 +401,9 @@ module.exports = {
   clearChatMessages,
   deleteSession,
   resetAllStatuses,
+  banUser: (gameId, reason) => { runSql('INSERT OR REPLACE INTO banned_users (game_id, reason, banned_at) VALUES (?, ?, ?)', [gameId, reason || '', taipeiNow()]); },
+  unbanUser: (gameId) => { runSql('DELETE FROM banned_users WHERE game_id = ?', [gameId]); },
+  isBanned: (gameId) => !!getOne('SELECT game_id FROM banned_users WHERE game_id = ?', [gameId]),
+  getBannedUsers: () => getAll('SELECT * FROM banned_users ORDER BY banned_at DESC'),
   closeDatabase
 };

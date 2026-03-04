@@ -108,7 +108,8 @@ router.get('/status', (req, res) => {
         waitlistSlots: session.waitlist_slots,
         currentCount: count,
         resultsPublished: !!session.results_published,
-        status: session.status
+        status: session.status,
+        startTime: db.getSettingValue('session_start_time', null)
     });
 });
 
@@ -130,6 +131,11 @@ router.post('/register', (req, res) => {
     const existing = db.getRegistrationByGameId(session.id, gameId);
     if (existing) {
         return res.status(409).json({ error: '此遊戲 ID 已經報名過了', registration: existing });
+    }
+
+    // Check if banned
+    if (db.isBanned(gameId)) {
+        return res.status(403).json({ error: '此遊戲 ID 已被禁止報名' });
     }
 
     try {
@@ -235,11 +241,17 @@ router.post('/admin/session', requireAdmin, (req, res) => {
     const mainSlots = Math.max(1, Math.min(100, parseInt(req.body.mainSlots) || 4));
     const waitlistSlots = Math.max(0, Math.min(100, parseInt(req.body.waitlistSlots) || 2));
     const latePolicy = ['waitlist', 'reject', 'none'].includes(req.body.latePolicy) ? req.body.latePolicy : 'waitlist';
+    const startTime = req.body.startTime || null;
 
     const sessionId = db.createSession(title, mainSlots, waitlistSlots, latePolicy);
 
+    // Save start_time if provided
+    if (startTime) {
+        db.setSettingValue('session_start_time', startTime);
+    }
+
     if (req.app.io) {
-        req.app.io.emit('session:updated', { active: true, title, mainSlots, waitlistSlots });
+        req.app.io.emit('session:updated', { active: true, title, mainSlots, waitlistSlots, startTime });
     }
 
     res.json({ sessionId, message: '新場次已建立' });
@@ -584,6 +596,64 @@ router.post('/admin/reset-password', requireAdmin, (req, res) => {
     }
     db.setAdminPassword(newPassword);
     res.json({ message: '密碼已更新' });
+});
+
+// ─── Kick / Ban ───────────────────────────────────────────────────
+router.post('/admin/kick', requireAdmin, (req, res) => {
+    const { gameId } = req.body;
+    if (!gameId) return res.status(400).json({ error: '缺少 gameId' });
+
+    if (req.app.io) {
+        // Find the socket for this user and kick them
+        const io = req.app.io;
+        for (const [, socket] of io.sockets.sockets) {
+            if (socket.gameId === gameId) {
+                socket.emit('user:kicked');
+                socket.leave('registered');
+                socket.disconnect(true);
+                break;
+            }
+        }
+        // System announcement
+        const sysMsg = {
+            gameId: 'SYSTEM', displayName: '系統',
+            message: `⚠️ ${gameId} 已被管理員移出`,
+            isSystem: true, sentAt: db.taipeiNow()
+        };
+        io.to('registered').emit('chat:message', sysMsg);
+        io.to('admin').emit('chat:message', sysMsg);
+    }
+    res.json({ message: '已踢除用戶' });
+});
+
+router.post('/admin/ban', requireAdmin, (req, res) => {
+    const { gameId, reason } = req.body;
+    if (!gameId) return res.status(400).json({ error: '缺少 gameId' });
+    db.banUser(gameId, reason);
+
+    // Also kick if currently connected
+    if (req.app.io) {
+        for (const [, socket] of req.app.io.sockets.sockets) {
+            if (socket.gameId === gameId) {
+                socket.emit('user:kicked');
+                socket.leave('registered');
+                socket.disconnect(true);
+                break;
+            }
+        }
+    }
+    res.json({ message: '已封禁用戶' });
+});
+
+router.post('/admin/unban', requireAdmin, (req, res) => {
+    const { gameId } = req.body;
+    if (!gameId) return res.status(400).json({ error: '缺少 gameId' });
+    db.unbanUser(gameId);
+    res.json({ message: '已解除封禁' });
+});
+
+router.get('/admin/banned', requireAdmin, (req, res) => {
+    res.json({ banned: db.getBannedUsers() });
 });
 
 module.exports = router;

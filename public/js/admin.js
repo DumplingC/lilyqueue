@@ -258,7 +258,8 @@
                     title: $('#newTitle').value,
                     mainSlots: parseInt($('#newMainSlots').value) || 4,
                     waitlistSlots: parseInt($('#newWaitlistSlots').value) || 2,
-                    latePolicy: $('#newLatePolicy').value
+                    latePolicy: $('#newLatePolicy').value,
+                    startTime: $('#newStartTime').value || null
                 }
             });
             showToast('場次已建立，開始接受報名！');
@@ -393,9 +394,11 @@
             </div>
           </td>
           <td>
-            <button class="btn btn-xs btn-outline mark-late-btn" data-game-id="${escapeHtml(reg.game_id)}" data-display-name="${escapeHtml(reg.display_name)}" title="標記遲到">
-              ⚠️
-            </button>
+            <div style="display:flex;gap:3px;">
+              <button class="btn btn-xs btn-outline mark-late-btn" data-game-id="${escapeHtml(reg.game_id)}" data-display-name="${escapeHtml(reg.display_name)}" title="標記遲到">⚠️</button>
+              <button class="btn btn-xs btn-outline kick-btn" data-game-id="${escapeHtml(reg.game_id)}" title="踢除">🚪</button>
+              <button class="btn btn-xs btn-outline ban-btn" data-game-id="${escapeHtml(reg.game_id)}" title="封禁" style="color:var(--accent-danger);">🚫</button>
+            </div>
           </td>
         </tr>
       `;
@@ -444,6 +447,32 @@
                     showToast(`已標記 ${gameId} 為遲到`);
                     loadSessionData();
                     loadLateRecords();
+                } catch (e) {
+                    showToast(e.message, 'error');
+                }
+            });
+        });
+
+        container.querySelectorAll('.kick-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const gameId = btn.dataset.gameId;
+                if (!confirm(`確定要踢除 ${gameId} 嗎？`)) return;
+                try {
+                    await api('/admin/kick', { method: 'POST', body: { gameId } });
+                    showToast(`已踢除 ${gameId}`);
+                } catch (e) {
+                    showToast(e.message, 'error');
+                }
+            });
+        });
+
+        container.querySelectorAll('.ban-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const gameId = btn.dataset.gameId;
+                if (!confirm(`確定要封禁 ${gameId} 嗎？封禁後將無法再報名。`)) return;
+                try {
+                    await api('/admin/ban', { method: 'POST', body: { gameId } });
+                    showToast(`已封禁 ${gameId}`);
                 } catch (e) {
                     showToast(e.message, 'error');
                 }
