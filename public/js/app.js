@@ -380,9 +380,12 @@
         if (isSystem) {
             div.innerHTML = `<div class="chat-system-text">${escapeHtml(msg.message)}</div>`;
         } else {
+            const statusTag = msg.regStatus && !msg.isAdmin
+                ? ` <span class="online-reg-tag ${msg.regStatus === 'selected' ? 'reg-selected' : msg.regStatus === 'rejected' ? 'reg-rejected' : ''}">${regStatusLabels[msg.regStatus] || '審核中'}</span>`
+                : '';
             div.innerHTML = `
           <div class="chat-meta">
-            <span class="chat-name">${escapeHtml(msg.displayName)}</span>
+            <span class="chat-name">${escapeHtml(msg.displayName)}${statusTag}</span>
             <span class="chat-time">${formatTime(msg.sentAt || msg.sent_at)}</span>
           </div>
           <div class="chat-text">${escapeHtml(msg.message)}</div>

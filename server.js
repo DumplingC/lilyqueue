@@ -184,6 +184,7 @@ io.on('connection', (socket) => {
             gameId = socket.gameId;
             displayName = socket.displayName || socket.gameId;
             isAdmin = false;
+            var regStatus = reg.status || 'pending';
         } else {
             return;
         }
@@ -196,6 +197,7 @@ io.on('connection', (socket) => {
             displayName,
             message,
             isAdmin,
+            regStatus: regStatus || null,
             sentAt: db.taipeiNow()
         };
 

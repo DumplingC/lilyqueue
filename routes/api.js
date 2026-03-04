@@ -302,9 +302,54 @@ router.post('/admin/select', requireAdmin, (req, res) => {
     const session = db.getActiveSession();
     if (req.app.io && session) {
         const regs = db.getRegistrations(session.id);
-        // Emit to all connected sockets (registered users + admins + anyone)
         req.app.io.emit('registrations:updated', { registrations: regs });
         console.log(`[EMIT] registrations:updated sent to all sockets (${regs.length} registrations)`);
+
+        // Find the registration to get display name
+        const reg = regs.find(r => r.id === registrationId);
+        if (reg) {
+            const statusLabels = {
+                selected: '正選', waitlist: '備取', rejected: '未錄取', pending: '等待審核'
+            };
+            const statusIcons = {
+                selected: '🎉', waitlist: '📋', rejected: '❌', pending: '⏳'
+            };
+            const label = statusLabels[status] || status;
+            const icon = statusIcons[status] || '📢';
+            const name = reg.display_name || reg.game_id;
+
+            // System chat announcement
+            const sysMsg = {
+                gameId: 'SYSTEM',
+                displayName: '系統',
+                message: `${icon} ${name} 已被設為${label}`,
+                isSystem: true,
+                sentAt: db.taipeiNow()
+            };
+            req.app.io.to('registered').emit('chat:message', sysMsg);
+            req.app.io.to('admin').emit('chat:message', sysMsg);
+        }
+
+        // Check if slots are full
+        const selectedCount = regs.filter(r => r.status === 'selected').length;
+        const waitlistCount = regs.filter(r => r.status === 'waitlist').length;
+        const totalFilled = selectedCount + waitlistCount;
+        const totalSlots = (session.main_slots || 0) + (session.waitlist_slots || 0);
+
+        if (totalFilled >= totalSlots && status === 'selected' || status === 'waitlist') {
+            // Only announce when we just hit full
+            if (totalFilled === totalSlots) {
+                const fullMsg = {
+                    gameId: 'SYSTEM',
+                    displayName: '系統',
+                    message: `📢 名額已滿！正選 ${selectedCount} 人 + 備取 ${waitlistCount} 人`,
+                    isSystem: true,
+                    sentAt: db.taipeiNow()
+                };
+                req.app.io.to('registered').emit('chat:message', fullMsg);
+                req.app.io.to('admin').emit('chat:message', fullMsg);
+            }
+        }
     }
 
     res.json({ message: '狀態已更新' });
