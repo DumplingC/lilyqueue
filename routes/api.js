@@ -260,6 +260,47 @@ router.post('/admin/session/close', requireAdmin, (req, res) => {
     res.json({ message: '場次已關閉' });
 });
 
+// Delete session entirely
+router.delete('/admin/session', requireAdmin, (req, res) => {
+    const session = db.getActiveSession();
+    if (!session) {
+        return res.status(400).json({ error: '沒有進行中的場次' });
+    }
+    db.deleteSession(session.id);
+
+    if (req.app.io) {
+        req.app.io.emit('session:updated', { active: false });
+    }
+
+    res.json({ message: '場次已刪除' });
+});
+
+// Reset all statuses to pending (cancel auto-select)
+router.post('/admin/reset-statuses', requireAdmin, (req, res) => {
+    const session = db.getActiveSession();
+    if (!session) {
+        return res.status(400).json({ error: '沒有進行中的場次' });
+    }
+    db.resetAllStatuses(session.id);
+
+    if (req.app.io) {
+        const regs = db.getRegistrations(session.id);
+        req.app.io.emit('registrations:updated', { registrations: regs });
+
+        const sysMsg = {
+            gameId: 'SYSTEM',
+            displayName: '系統',
+            message: '⏳ 管理員已重設所有審核狀態',
+            isSystem: true,
+            sentAt: db.taipeiNow()
+        };
+        req.app.io.to('registered').emit('chat:message', sysMsg);
+        req.app.io.to('admin').emit('chat:message', sysMsg);
+    }
+
+    res.json({ message: '已重設所有報名狀態' });
+});
+
 // Update session settings
 router.put('/admin/session', requireAdmin, (req, res) => {
     const session = db.getActiveSession();

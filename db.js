@@ -171,6 +171,16 @@ function closeSession(sessionId) {
   runSql("UPDATE sessions SET status = 'closed', closed_at = ? WHERE id = ?", [taipeiNow(), sessionId]);
 }
 
+function deleteSession(sessionId) {
+  runSql('DELETE FROM chat_messages WHERE session_id = ?', [sessionId]);
+  runSql('DELETE FROM registrations WHERE session_id = ?', [sessionId]);
+  runSql('DELETE FROM sessions WHERE id = ?', [sessionId]);
+}
+
+function resetAllStatuses(sessionId) {
+  runSql("UPDATE registrations SET status = 'pending' WHERE session_id = ?", [sessionId]);
+}
+
 function updateSession(sessionId, fields) {
   const allowed = ['title', 'main_slots', 'waitlist_slots', 'late_policy', 'results_published'];
   const updates = [];
@@ -380,5 +390,7 @@ module.exports = {
   addChatMessage,
   getChatMessages,
   clearChatMessages,
+  deleteSession,
+  resetAllStatuses,
   closeDatabase
 };

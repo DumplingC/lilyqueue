@@ -280,6 +280,29 @@
         }
     });
 
+    $('#deleteSessionBtn').addEventListener('click', async () => {
+        if (!confirm('確定要刪除此場次？所有報名資料和聊天紀錄將被永久刪除！')) return;
+        if (!confirm('再次確認：刪除後無法復原，是否繼續？')) return;
+        try {
+            await api('/admin/session', { method: 'DELETE' });
+            showToast('場次已刪除');
+            loadSessionData();
+        } catch (e) {
+            showToast(e.message, 'error');
+        }
+    });
+
+    $('#resetStatusesBtn').addEventListener('click', async () => {
+        if (!confirm('確定要重設所有報名狀態為「審核中」嗎？')) return;
+        try {
+            await api('/admin/reset-statuses', { method: 'POST' });
+            showToast('已重設所有報名狀態');
+            loadSessionData();
+        } catch (e) {
+            showToast(e.message, 'error');
+        }
+    });
+
     // Update session settings
     $('#updateSessionBtn').addEventListener('click', async () => {
         try {
@@ -691,14 +714,12 @@
 
     $('#cropBgBtn').addEventListener('click', () => {
         const previewImg = $('#bgPreviewImg');
-        if (!previewImg || !previewImg.src) {
+        if (!previewImg || !previewImg.src || previewImg.src === window.location.href) {
             showToast('請先上傳背景圖片', 'error');
             return;
         }
         const modal = $('#cropModal');
         const cropImg = $('#cropImage');
-        cropImg.src = previewImg.src;
-        modal.style.display = 'flex';
 
         // Destroy previous cropper if any
         if (currentCropper) {
@@ -706,15 +727,35 @@
             currentCropper = null;
         }
 
-        // Wait for image to load then init cropper
+        // Show modal first
+        modal.style.display = 'flex';
+
+        // Clear src and re-set to force onload (handles cached images)
+        cropImg.src = '';
+        setTimeout(() => {
+            cropImg.src = previewImg.src;
+        }, 50);
+
         cropImg.onload = () => {
-            currentCropper = new Cropper(cropImg, {
-                aspectRatio: NaN, // free crop
-                viewMode: 1,
-                autoCropArea: 0.8,
-                responsive: true,
-                background: false
-            });
+            // Small delay to let DOM layout settle
+            setTimeout(() => {
+                if (currentCropper) {
+                    currentCropper.destroy();
+                }
+                currentCropper = new Cropper(cropImg, {
+                    aspectRatio: NaN,
+                    viewMode: 1,
+                    autoCropArea: 0.8,
+                    responsive: true,
+                    background: true,
+                    guides: true,
+                    center: true,
+                    highlight: true,
+                    cropBoxMovable: true,
+                    cropBoxResizable: true,
+                    toggleDragModeOnDblclick: false
+                });
+            }, 100);
         };
     });
 
