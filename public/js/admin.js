@@ -192,6 +192,10 @@
 
         socket.on('chat:message', (msg) => {
             addAdminChatMessage(msg);
+            // Play notification sound when window is not focused and message is not from admin
+            if (document.hidden && msg.sender !== 'admin') {
+                playNotifSound();
+            }
         });
 
         socket.on('chat:cleared', () => {
@@ -1248,15 +1252,18 @@
     async function setupShareUrl() {
         try {
             const data = await fetch('/api/server-info').then(r => r.json());
-            $('#shareUrl').textContent = data.url;
+            const urlEl = $('#shareUrl');
+            urlEl.href = data.url;
+            urlEl.textContent = data.url;
         } catch (e) {
-            // Fallback to current origin
-            $('#shareUrl').textContent = window.location.origin;
+            const urlEl = $('#shareUrl');
+            urlEl.href = window.location.origin;
+            urlEl.textContent = window.location.origin;
         }
     }
 
     $('#copyUrlBtn').addEventListener('click', () => {
-        const url = $('#shareUrl').textContent;
+        const url = $('#shareUrl').href || $('#shareUrl').textContent;
         copyToClipboard(url);
         showToast('已複製報名連結');
     });

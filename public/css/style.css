@@ -1873,11 +1873,11 @@ select.form-input option {
   flex-wrap: wrap;
   gap: 4px;
   padding: 10px;
-  border-bottom: 1px solid var(--border-color);
+  border-top: 1px solid var(--border-color);
   background: var(--bg-card);
   max-height: 120px;
   overflow-y: auto;
-  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
 }
 
 .emoji-picker.open {
