@@ -85,10 +85,10 @@
         } catch (e) { /* ignore */ }
     }
 
-    // ─── Tab system ───────────────────────────────────────────────────
-    $$('.tab').forEach(tab => {
+    // ─── Tab system (sidebar navigation) ───────────────────────────
+    $$('.sidebar-item').forEach(tab => {
         tab.addEventListener('click', () => {
-            $$('.tab').forEach(t => t.classList.remove('active'));
+            $$('.sidebar-item').forEach(t => t.classList.remove('active'));
             $$('.tab-content').forEach(c => c.classList.remove('active'));
             tab.classList.add('active');
             $(`#tab-${tab.dataset.tab}`).classList.add('active');
@@ -660,7 +660,7 @@
     }
 
     // Load history when switching to history tab
-    document.querySelectorAll('.tab').forEach(tab => {
+    document.querySelectorAll('.sidebar-item').forEach(tab => {
         tab.addEventListener('click', () => {
             if (tab.dataset.tab === 'history') loadSessionHistory();
         });

@@ -41,7 +41,7 @@
     </div>
 
     <!-- Admin Dashboard (hidden until login) -->
-    <div class="container-wide" id="adminDashboard" style="display: none;">
+    <div class="admin-dashboard-wrap" id="adminDashboard" style="display: none;">
 
         <!-- Top Bar -->
         <div class="admin-topbar">
@@ -53,707 +53,766 @@
             </div>
         </div>
 
-        <!-- Share URL -->
-        <div class="url-bar" id="shareUrlBar">
-            <span>📎</span>
-            <a id="shareUrl" href="#" target="_blank" rel="noopener"
-                style="color:var(--accent-info); text-decoration:none; font-family:monospace; font-size:0.85rem;">載入中...</a>
-            <button class="btn btn-sm btn-outline" id="copyUrlBtn">複製</button>
-            <button class="btn btn-sm btn-outline" id="qrCodeBtn" title="顯示 QR Code">📱</button>
-        </div>
+        <!-- Sidebar Layout -->
+        <div class="admin-sidebar-layout">
 
-        <!-- QR Code Modal -->
-        <div id="qrModal"
-            style="display:none; position:fixed; inset:0; z-index:1000; background:rgba(0,0,0,0.7); display:none; align-items:center; justify-content:center;">
-            <div class="card" style="max-width:340px; text-align:center; position:relative;">
-                <button onclick="document.getElementById('qrModal').style.display='none'"
-                    style="position:absolute; top:8px; right:12px; background:none; border:none; color:var(--text-muted); font-size:1.2rem; cursor:pointer;">✕</button>
-                <h3 style="margin-bottom:12px;">📱 掃碼報名</h3>
-                <img id="qrCodeImg" src="" alt="QR Code"
-                    style="width:250px; height:250px; margin:0 auto; border-radius:8px;">
-                <p style="font-size:0.75rem; color:var(--text-muted); margin-top:10px;" id="qrCodeUrl"></p>
-            </div>
-        </div>
+            <!-- Sidebar -->
+            <aside class="admin-sidebar">
+                <div class="sidebar-header">
+                    <div class="url-bar" id="shareUrlBar">
+                        <span>📎</span>
+                        <a id="shareUrl" href="#" target="_blank" rel="noopener"
+                            style="color:var(--accent-info); text-decoration:none; font-family:monospace; font-size:0.75rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">載入中...</a>
+                        <button class="btn btn-xs btn-outline" id="copyUrlBtn">複製</button>
+                        <button class="btn btn-xs btn-outline" id="qrCodeBtn" title="顯示 QR Code">📱</button>
+                    </div>
+                </div>
 
-        <!-- Tabs -->
-        <div class="tabs">
-            <button class="tab active" data-tab="session">📋 場次管理</button>
-            <button class="tab" data-tab="registrations">👥 報名列表</button>
-            <button class="tab" data-tab="chat">💬 聊天室</button>
-            <button class="tab" data-tab="history">📊 歷史</button>
-            <button class="tab" data-tab="settings">⚙️ 設定</button>
-        </div>
+                <nav class="sidebar-nav">
+                    <button class="sidebar-item active" data-tab="session">
+                        <span class="sidebar-icon emoji-only">📋</span>
+                        <i data-lucide="layout-dashboard" class="sidebar-icon pro-only"></i>
+                        <span class="sidebar-label">場次管理</span>
+                    </button>
+                    <button class="sidebar-item" data-tab="registrations">
+                        <span class="sidebar-icon emoji-only">👥</span>
+                        <i data-lucide="users" class="sidebar-icon pro-only"></i>
+                        <span class="sidebar-label">報名列表</span>
+                    </button>
+                    <button class="sidebar-item" data-tab="chat">
+                        <span class="sidebar-icon emoji-only">💬</span>
+                        <i data-lucide="message-circle" class="sidebar-icon pro-only"></i>
+                        <span class="sidebar-label">聊天室</span>
+                    </button>
+                    <button class="sidebar-item" data-tab="history">
+                        <span class="sidebar-icon emoji-only">📊</span>
+                        <i data-lucide="bar-chart-3" class="sidebar-icon pro-only"></i>
+                        <span class="sidebar-label">歷史紀錄</span>
+                    </button>
+                    <button class="sidebar-item" data-tab="settings">
+                        <span class="sidebar-icon emoji-only">⚙️</span>
+                        <i data-lucide="settings" class="sidebar-icon pro-only"></i>
+                        <span class="sidebar-label">設定</span>
+                    </button>
+                </nav>
 
-        <!-- Tab: Session Management -->
-        <div class="tab-content active" id="tab-session">
-            <div class="admin-layout">
-                <div>
-                    <!-- Dashboard Stats -->
-                    <div id="dashboardStats" style="margin-bottom:12px;"></div>
+                <div class="sidebar-footer">
+                    <div style="font-size:0.65rem; color:var(--text-muted); text-align:center; padding:10px;">
+                        Lily Queue v2.0
+                    </div>
+                </div>
+            </aside>
 
-                    <!-- Session Controls -->
-                    <div class="card" id="sessionControlCard">
-                        <div class="card-header">
-                            <span class="icon">🎯</span>
-                            <h2>場次控制</h2>
-                            <span class="badge" id="sessionStatusBadge">—</span>
+            <!-- Main Content -->
+            <main class="admin-main-content">
+
+                <!-- QR Code Modal -->
+                <div id="qrModal"
+                    style="display:none; position:fixed; inset:0; z-index:1000; background:rgba(0,0,0,0.7); display:none; align-items:center; justify-content:center;">
+                    <div class="card" style="max-width:340px; text-align:center; position:relative;">
+                        <button onclick="document.getElementById('qrModal').style.display='none'"
+                            style="position:absolute; top:8px; right:12px; background:none; border:none; color:var(--text-muted); font-size:1.2rem; cursor:pointer;">✕</button>
+                        <h3 style="margin-bottom:12px;">📱 掃碼報名</h3>
+                        <img id="qrCodeImg" src="" alt="QR Code"
+                            style="width:250px; height:250px; margin:0 auto; border-radius:8px;">
+                        <p style="font-size:0.75rem; color:var(--text-muted); margin-top:10px;" id="qrCodeUrl"></p>
+                    </div>
+                </div>
+
+                <!-- Tab: Session Management -->
+                <div class="tab-content active" id="tab-session">
+                    <div class="admin-layout">
+                        <div>
+                            <!-- Dashboard Stats -->
+                            <div id="dashboardStats" style="margin-bottom:12px;"></div>
+
+                            <!-- Session Controls -->
+                            <div class="card" id="sessionControlCard">
+                                <div class="card-header">
+                                    <span class="icon">🎯</span>
+                                    <h2>場次控制</h2>
+                                    <span class="badge" id="sessionStatusBadge">—</span>
+                                </div>
+
+                                <div id="noSessionView">
+                                    <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 0.9rem;">
+                                        目前沒有進行中的場次，請建立新場次開始接受報名。</p>
+                                    <div class="form-group">
+                                        <label>場次標題</label>
+                                        <input type="text" id="newTitle" class="form-input" placeholder="例：今晚吃雞第三場"
+                                            maxlength="50">
+                                    </div>
+                                    <div class="config-grid">
+                                        <div class="form-group">
+                                            <label>正選名額</label>
+                                            <input type="number" id="newMainSlots" class="form-input" value="6" min="1"
+                                                max="100">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>備取名額</label>
+                                            <input type="number" id="newWaitlistSlots" class="form-input" value="2"
+                                                min="0" max="100">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>遲到者處理方式</label>
+                                        <select id="newLatePolicy" class="form-input">
+                                            <option value="waitlist">自動移到備取</option>
+                                            <option value="reject">直接不錄取</option>
+                                            <option value="none">不特別處理</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>開始時間（選填，倒數計時用）</label>
+                                        <input type="datetime-local" id="newStartTime" class="form-input">
+                                    </div>
+                                    <button class="btn btn-success btn-block" id="createSessionBtn">
+                                        <span>🚀</span> 建立場次並開始報名
+                                    </button>
+                                </div>
+
+                                <div id="activeSessionView" style="display: none;">
+                                    <div class="status-bar">
+                                        <div class="status-indicator">
+                                            <span class="status-dot online"></span>
+                                            <span class="status-text">報名進行中</span>
+                                        </div>
+                                        <div class="slot-counter" id="adminSlotCounter">--</div>
+                                    </div>
+                                    <div class="progress-bar" style="margin-bottom: 16px;">
+                                        <div class="progress-fill" id="adminProgressFill" style="width: 0%"></div>
+                                    </div>
+
+                                    <div class="config-grid" style="margin-bottom: 16px;">
+                                        <div class="form-group">
+                                            <label>正選名額</label>
+                                            <input type="number" id="editMainSlots" class="form-input" min="1"
+                                                max="100">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>備取名額</label>
+                                            <input type="number" id="editWaitlistSlots" class="form-input" min="0"
+                                                max="100">
+                                        </div>
+                                    </div>
+                                    <div class="form-group" style="margin-bottom: 16px;">
+                                        <label>遲到者處理方式</label>
+                                        <select id="editLatePolicy" class="form-input">
+                                            <option value="waitlist">自動移到備取</option>
+                                            <option value="reject">直接不錄取</option>
+                                            <option value="none">不特別處理</option>
+                                        </select>
+                                    </div>
+                                    <button class="btn btn-outline btn-block" id="updateSessionBtn"
+                                        style="margin-bottom: 10px;">
+                                        💾 儲存設定
+                                    </button>
+
+                                    <button class="btn btn-outline btn-block" id="attentionAlertBtn"
+                                        style="margin-bottom: 10px; color:var(--accent-warning); border-color:var(--accent-warning);">
+                                        🔔 引起注意（播放提示音）
+                                    </button>
+
+                                    <div class="btn-group">
+                                        <button class="btn btn-primary" id="autoSelectBtn" style="flex:1;">
+                                            ⚡ 按時間自動錄取
+                                        </button>
+                                        <button class="btn btn-outline" id="resetStatusesBtn" style="flex:1;">
+                                            ⏳ 重設所有狀態
+                                        </button>
+                                    </div>
+                                    <div class="btn-group" style="margin-top: 8px;">
+                                        <button class="btn btn-success" id="publishBtn" style="flex:1;">
+                                            📢 公布結果
+                                        </button>
+                                        <button class="btn btn-danger" id="closeSessionBtn" style="flex:1;">
+                                            🔒 關閉報名
+                                        </button>
+                                    </div>
+                                    <button class="btn btn-outline btn-block" id="deleteSessionBtn"
+                                        style="margin-top: 10px; color: var(--accent-danger); border-color: var(--accent-danger);">
+                                        🗑️ 刪除場次
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
-                        <div id="noSessionView">
-                            <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 0.9rem;">
-                                目前沒有進行中的場次，請建立新場次開始接受報名。</p>
-                            <div class="form-group">
-                                <label>場次標題</label>
-                                <input type="text" id="newTitle" class="form-input" placeholder="例：今晚吃雞第三場"
-                                    maxlength="50">
-                            </div>
-                            <div class="config-grid">
-                                <div class="form-group">
-                                    <label>正選名額</label>
-                                    <input type="number" id="newMainSlots" class="form-input" value="6" min="1"
-                                        max="100">
+                        <!-- Sidebar: Quick Stats -->
+                        <div class="admin-sidebar">
+                            <div class="card">
+                                <div class="card-header">
+                                    <span class="icon">📊</span>
+                                    <h2>快速統計</h2>
                                 </div>
-                                <div class="form-group">
-                                    <label>備取名額</label>
-                                    <input type="number" id="newWaitlistSlots" class="form-input" value="2" min="0"
-                                        max="100">
+                                <div id="quickStats">
+                                    <div class="status-bar" style="margin-bottom: 8px;">
+                                        <span style="font-size: 0.85rem;">總報名人數</span>
+                                        <strong id="statTotal" style="color: var(--accent-primary-light);">0</strong>
+                                    </div>
+                                    <div class="status-bar" style="margin-bottom: 8px;">
+                                        <span style="font-size: 0.85rem;">正選</span>
+                                        <strong id="statSelected" style="color: var(--accent-secondary);">0</strong>
+                                    </div>
+                                    <div class="status-bar" style="margin-bottom: 8px;">
+                                        <span style="font-size: 0.85rem;">備取</span>
+                                        <strong id="statWaitlist" style="color: var(--accent-warning);">0</strong>
+                                    </div>
+                                    <div class="status-bar">
+                                        <span style="font-size: 0.85rem;">有遲到紀錄</span>
+                                        <strong id="statLate" style="color: var(--accent-danger);">0</strong>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="form-group">
-                                <label>遲到者處理方式</label>
-                                <select id="newLatePolicy" class="form-input">
-                                    <option value="waitlist">自動移到備取</option>
-                                    <option value="reject">直接不錄取</option>
-                                    <option value="none">不特別處理</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>開始時間（選填，倒數計時用）</label>
-                                <input type="datetime-local" id="newStartTime" class="form-input">
-                            </div>
-                            <button class="btn btn-success btn-block" id="createSessionBtn">
-                                <span>🚀</span> 建立場次並開始報名
-                            </button>
-                        </div>
-
-                        <div id="activeSessionView" style="display: none;">
-                            <div class="status-bar">
-                                <div class="status-indicator">
-                                    <span class="status-dot online"></span>
-                                    <span class="status-text">報名進行中</span>
-                                </div>
-                                <div class="slot-counter" id="adminSlotCounter">--</div>
-                            </div>
-                            <div class="progress-bar" style="margin-bottom: 16px;">
-                                <div class="progress-fill" id="adminProgressFill" style="width: 0%"></div>
                             </div>
 
-                            <div class="config-grid" style="margin-bottom: 16px;">
-                                <div class="form-group">
-                                    <label>正選名額</label>
-                                    <input type="number" id="editMainSlots" class="form-input" min="1" max="100">
+                            <!-- Copy Roster -->
+                            <div class="card" style="margin-top: 16px;">
+                                <div class="card-header">
+                                    <span class="icon">📋</span>
+                                    <h2>匯出名單</h2>
                                 </div>
-                                <div class="form-group">
-                                    <label>備取名額</label>
-                                    <input type="number" id="editWaitlistSlots" class="form-input" min="0" max="100">
+                                <button class="btn btn-outline btn-block" id="copyRosterBtn">📋 複製正選名單</button>
+                                <button class="btn btn-outline btn-block" id="copyAllBtn" style="margin-top: 8px;">📋
+                                    複製全部名單</button>
+                            </div>
+
+                            <!-- QR Code -->
+                            <div class="card" style="margin-top: 16px;">
+                                <div class="card-header">
+                                    <span class="icon">📲</span>
+                                    <h2>QR Code</h2>
                                 </div>
+                                <button class="btn btn-outline btn-block" id="generateQrBtn">📲 產生 QR Code</button>
+                                <div id="qrCodePreview" style="margin-top:8px; text-align:center;"></div>
                             </div>
-                            <div class="form-group" style="margin-bottom: 16px;">
-                                <label>遲到者處理方式</label>
-                                <select id="editLatePolicy" class="form-input">
-                                    <option value="waitlist">自動移到備取</option>
-                                    <option value="reject">直接不錄取</option>
-                                    <option value="none">不特別處理</option>
-                                </select>
-                            </div>
-                            <button class="btn btn-outline btn-block" id="updateSessionBtn"
-                                style="margin-bottom: 10px;">
-                                💾 儲存設定
-                            </button>
 
-                            <button class="btn btn-outline btn-block" id="attentionAlertBtn"
-                                style="margin-bottom: 10px; color:var(--accent-warning); border-color:var(--accent-warning);">
-                                🔔 引起注意（播放提示音）
-                            </button>
-
-                            <div class="btn-group">
-                                <button class="btn btn-primary" id="autoSelectBtn" style="flex:1;">
-                                    ⚡ 按時間自動錄取
-                                </button>
-                                <button class="btn btn-outline" id="resetStatusesBtn" style="flex:1;">
-                                    ⏳ 重設所有狀態
-                                </button>
+                            <!-- Audit Log -->
+                            <div class="card" style="margin-top: 16px;">
+                                <div class="card-header">
+                                    <span class="icon">📜</span>
+                                    <h2>操作日誌</h2>
+                                </div>
+                                <div id="auditLogContainer"
+                                    style="max-height:200px; overflow-y:auto; font-size:0.7rem;">
+                                    <div class="empty-state">
+                                        <p style="font-size:0.75rem;">點擊下方載入</p>
+                                    </div>
+                                </div>
+                                <button class="btn btn-outline btn-block" id="loadAuditLogBtn"
+                                    style="margin-top:6px;">📜
+                                    載入日誌</button>
                             </div>
-                            <div class="btn-group" style="margin-top: 8px;">
-                                <button class="btn btn-success" id="publishBtn" style="flex:1;">
-                                    📢 公布結果
-                                </button>
-                                <button class="btn btn-danger" id="closeSessionBtn" style="flex:1;">
-                                    🔒 關閉報名
-                                </button>
-                            </div>
-                            <button class="btn btn-outline btn-block" id="deleteSessionBtn"
-                                style="margin-top: 10px; color: var(--accent-danger); border-color: var(--accent-danger);">
-                                🗑️ 刪除場次
-                            </button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Sidebar: Quick Stats -->
-                <div class="admin-sidebar">
+                <!-- Tab: Registrations -->
+                <div class="tab-content" id="tab-registrations">
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="icon">👥</span>
+                            <h2>報名列表</h2>
+                            <span class="badge badge-open" id="regCountBadge">0 人</span>
+                            <button class="btn btn-xs btn-outline" id="exportCsvBtn" title="匯出 CSV"
+                                style="margin-left:auto;">📥
+                                CSV</button>
+                            <button class="btn btn-xs btn-outline" id="exportExcelBtn" title="匯出 Excel"
+                                style="margin-left:4px;">📥
+                                Excel</button>
+                        </div>
+                        <p style="font-size:0.7rem; color:var(--text-muted); margin:4px 0 8px; line-height:1.4;">
+                            💡 系統會自動偵測瀏覽器指紋，若有人用不同遊戲 ID 從同一裝置報名，該筆報名旁會出現
+                            <span style="color:#ef4444; font-weight:600;">🔍 多重ID</span> 標記，滑鼠移上去可查看其他ID。
+                        </p>
+                        <!-- Batch Operations Bar -->
+                        <div id="batchBar"
+                            style="display:flex; align-items:center; gap:8px; padding:8px 12px; background:var(--bg-glass-strong); border-radius:var(--radius-sm); margin-bottom:10px;">
+                            <label
+                                style="display:flex; align-items:center; gap:4px; font-size:0.78rem; cursor:pointer;">
+                                <input type="checkbox" id="selectAllRegs" style="accent-color:var(--accent-primary);">
+                                全選
+                            </label>
+                            <span id="selectedCount" style="font-size:0.72rem; color:var(--text-muted);">已選 0 筆</span>
+                            <div style="margin-left:auto; display:flex; gap:4px;">
+                                <button class="btn btn-xs btn-success" id="batchApproveBtn" disabled>✅ 批次通過</button>
+                                <button class="btn btn-xs btn-danger" id="batchRejectBtn" disabled>❌ 批次拒絕</button>
+                                <button class="btn btn-xs btn-outline" id="batchDeleteBtn" disabled>🗑️ 批次刪除</button>
+                            </div>
+                        </div>
+                        <div id="registrationsList">
+                            <div class="empty-state">
+                                <div class="empty-icon">📭</div>
+                                <p>還沒有人報名</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Chat -->
+                <div class="tab-content" id="tab-chat">
+                    <div style="display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap;">
+                        <!-- Chat Panel (Left) -->
+                        <div class="card" style="flex:1; min-width:300px; max-width:520px;">
+                            <div class="card-header">
+                                <span class="icon">💬</span>
+                                <h2>聊天室</h2>
+                                <button class="btn btn-xs btn-danger" id="clearChatBtn" style="margin-left: auto;">🗑️
+                                    清除對話</button>
+                            </div>
+                            <div style="padding: 6px 10px; border-bottom: 1px solid var(--border-color);">
+                                <div style="display:flex;gap:6px;align-items:center;">
+                                    <label
+                                        style="font-size:0.72rem;color:var(--text-muted);white-space:nowrap;">顯示名稱</label>
+                                    <input type="text" class="form-input" id="adminDisplayName" placeholder="🎮 主辦人"
+                                        maxlength="30" style="padding:3px 8px;font-size:0.78rem;flex:1;">
+                                </div>
+                            </div>
+                            <div class="chat-messages" id="adminChatMessages" style="height: 320px;">
+                                <div class="empty-state" id="adminChatEmpty">
+                                    <p style="font-size: 0.8rem;">還沒有訊息</p>
+                                </div>
+                            </div>
+                            <div style="position:relative;">
+                                <div class="emoji-picker" id="adminEmojiPicker"
+                                    style="position:absolute; bottom:100%; left:0; right:0; z-index:10;">
+                                </div>
+                                <div class="chat-input-row">
+                                    <button class="btn btn-ghost emoji-toggle" id="adminEmojiBtn" type="button"
+                                        title="表情">😊</button>
+                                    <input type="text" class="form-input" id="adminChatInput"
+                                        placeholder="以主辦人身份發送訊息..." maxlength="500" autocomplete="off">
+                                    <button class="btn btn-primary" id="adminChatSendBtn">發送</button>
+                                    <button class="btn btn-outline" id="pttBtn" title="按住說話（語音廣播）"
+                                        style="padding:6px 10px; font-size:1rem; border-color:var(--accent-primary); position:relative;">
+                                        🎙️
+                                        <span id="pttIndicator"
+                                            style="display:none; position:absolute; top:-3px; right:-3px; width:8px; height:8px; background:#f44336; border-radius:50%; animation:pulse 0.8s infinite;"></span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Announcement Panel (Right) -->
+                        <div class="card" style="flex:0 0 260px; min-width:240px;">
+                            <div class="card-header">
+                                <span class="icon">📢</span>
+                                <h2>發送公告</h2>
+                            </div>
+                            <div class="form-group">
+                                <input type="text" id="announceInput" class="form-input" placeholder="輸入公告內容..."
+                                    maxlength="200" style="font-size:0.8rem;">
+                            </div>
+                            <button class="btn btn-primary btn-block" id="announceBtn" style="font-size:0.8rem;">📢
+                                發送公告</button>
+                            <div class="announce-templates" style="margin-top: 10px;">
+                                <p style="font-size: 0.7rem; color: var(--text-muted); margin-bottom: 6px;">快速樣板：</p>
+                                <div style="display:flex; flex-direction:column; gap:4px;">
+                                    <button class="btn btn-xs btn-outline announce-tpl"
+                                        style="text-align:left; font-size:0.7rem;">🎮 正在進行遊戲中</button>
+                                    <button class="btn btn-xs btn-outline announce-tpl"
+                                        style="text-align:left; font-size:0.7rem;">⏳ 請稍等，前一場尚未結束</button>
+                                    <button class="btn btn-xs btn-outline announce-tpl"
+                                        style="text-align:left; font-size:0.7rem;">✅ 輪到下一組了！</button>
+                                    <button class="btn btn-xs btn-outline announce-tpl"
+                                        style="text-align:left; font-size:0.7rem;">🔔 請準備上線</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: History -->
+                <div class="tab-content" id="tab-history">
                     <div class="card">
                         <div class="card-header">
                             <span class="icon">📊</span>
-                            <h2>快速統計</h2>
+                            <h2>場次歷史紀錄</h2>
                         </div>
-                        <div id="quickStats">
-                            <div class="status-bar" style="margin-bottom: 8px;">
-                                <span style="font-size: 0.85rem;">總報名人數</span>
-                                <strong id="statTotal" style="color: var(--accent-primary-light);">0</strong>
-                            </div>
-                            <div class="status-bar" style="margin-bottom: 8px;">
-                                <span style="font-size: 0.85rem;">正選</span>
-                                <strong id="statSelected" style="color: var(--accent-secondary);">0</strong>
-                            </div>
-                            <div class="status-bar" style="margin-bottom: 8px;">
-                                <span style="font-size: 0.85rem;">備取</span>
-                                <strong id="statWaitlist" style="color: var(--accent-warning);">0</strong>
-                            </div>
-                            <div class="status-bar">
-                                <span style="font-size: 0.85rem;">有遲到紀錄</span>
-                                <strong id="statLate" style="color: var(--accent-danger);">0</strong>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Copy Roster -->
-                    <div class="card" style="margin-top: 16px;">
-                        <div class="card-header">
-                            <span class="icon">📋</span>
-                            <h2>匯出名單</h2>
-                        </div>
-                        <button class="btn btn-outline btn-block" id="copyRosterBtn">📋 複製正選名單</button>
-                        <button class="btn btn-outline btn-block" id="copyAllBtn" style="margin-top: 8px;">📋
-                            複製全部名單</button>
-                    </div>
-
-                    <!-- QR Code -->
-                    <div class="card" style="margin-top: 16px;">
-                        <div class="card-header">
-                            <span class="icon">📲</span>
-                            <h2>QR Code</h2>
-                        </div>
-                        <button class="btn btn-outline btn-block" id="generateQrBtn">📲 產生 QR Code</button>
-                        <div id="qrCodePreview" style="margin-top:8px; text-align:center;"></div>
-                    </div>
-
-                    <!-- Audit Log -->
-                    <div class="card" style="margin-top: 16px;">
-                        <div class="card-header">
-                            <span class="icon">📜</span>
-                            <h2>操作日誌</h2>
-                        </div>
-                        <div id="auditLogContainer" style="max-height:200px; overflow-y:auto; font-size:0.7rem;">
+                        <div id="sessionHistoryList">
                             <div class="empty-state">
-                                <p style="font-size:0.75rem;">點擊下方載入</p>
+                                <p style="font-size:0.85rem;">載入中...</p>
                             </div>
                         </div>
-                        <button class="btn btn-outline btn-block" id="loadAuditLogBtn" style="margin-top:6px;">📜
-                            載入日誌</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Tab: Registrations -->
-        <div class="tab-content" id="tab-registrations">
-            <div class="card">
-                <div class="card-header">
-                    <span class="icon">👥</span>
-                    <h2>報名列表</h2>
-                    <span class="badge badge-open" id="regCountBadge">0 人</span>
-                    <button class="btn btn-xs btn-outline" id="exportCsvBtn" title="匯出 CSV" style="margin-left:auto;">📥
-                        CSV</button>
-                    <button class="btn btn-xs btn-outline" id="exportExcelBtn" title="匯出 Excel"
-                        style="margin-left:4px;">📥
-                        Excel</button>
-                </div>
-                <p style="font-size:0.7rem; color:var(--text-muted); margin:4px 0 8px; line-height:1.4;">
-                    💡 系統會自動偵測瀏覽器指紋，若有人用不同遊戲 ID 從同一裝置報名，該筆報名旁會出現
-                    <span style="color:#ef4444; font-weight:600;">🔍 多重ID</span> 標記，滑鼠移上去可查看其他ID。
-                </p>
-                <!-- Batch Operations Bar -->
-                <div id="batchBar"
-                    style="display:flex; align-items:center; gap:8px; padding:8px 12px; background:var(--bg-glass-strong); border-radius:var(--radius-sm); margin-bottom:10px;">
-                    <label style="display:flex; align-items:center; gap:4px; font-size:0.78rem; cursor:pointer;">
-                        <input type="checkbox" id="selectAllRegs" style="accent-color:var(--accent-primary);"> 全選
-                    </label>
-                    <span id="selectedCount" style="font-size:0.72rem; color:var(--text-muted);">已選 0 筆</span>
-                    <div style="margin-left:auto; display:flex; gap:4px;">
-                        <button class="btn btn-xs btn-success" id="batchApproveBtn" disabled>✅ 批次通過</button>
-                        <button class="btn btn-xs btn-danger" id="batchRejectBtn" disabled>❌ 批次拒絕</button>
-                        <button class="btn btn-xs btn-outline" id="batchDeleteBtn" disabled>🗑️ 批次刪除</button>
-                    </div>
-                </div>
-                <div id="registrationsList">
-                    <div class="empty-state">
-                        <div class="empty-icon">📭</div>
-                        <p>還沒有人報名</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Tab: Chat -->
-        <div class="tab-content" id="tab-chat">
-            <div style="display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap;">
-                <!-- Chat Panel (Left) -->
-                <div class="card" style="flex:1; min-width:300px; max-width:520px;">
-                    <div class="card-header">
-                        <span class="icon">💬</span>
-                        <h2>聊天室</h2>
-                        <button class="btn btn-xs btn-danger" id="clearChatBtn" style="margin-left: auto;">🗑️
-                            清除對話</button>
-                    </div>
-                    <div style="padding: 6px 10px; border-bottom: 1px solid var(--border-color);">
-                        <div style="display:flex;gap:6px;align-items:center;">
-                            <label style="font-size:0.72rem;color:var(--text-muted);white-space:nowrap;">顯示名稱</label>
-                            <input type="text" class="form-input" id="adminDisplayName" placeholder="🎮 主辦人"
-                                maxlength="30" style="padding:3px 8px;font-size:0.78rem;flex:1;">
-                        </div>
-                    </div>
-                    <div class="chat-messages" id="adminChatMessages" style="height: 320px;">
-                        <div class="empty-state" id="adminChatEmpty">
-                            <p style="font-size: 0.8rem;">還沒有訊息</p>
-                        </div>
-                    </div>
-                    <div style="position:relative;">
-                        <div class="emoji-picker" id="adminEmojiPicker"
-                            style="position:absolute; bottom:100%; left:0; right:0; z-index:10;">
-                        </div>
-                        <div class="chat-input-row">
-                            <button class="btn btn-ghost emoji-toggle" id="adminEmojiBtn" type="button"
-                                title="表情">😊</button>
-                            <input type="text" class="form-input" id="adminChatInput" placeholder="以主辦人身份發送訊息..."
-                                maxlength="500" autocomplete="off">
-                            <button class="btn btn-primary" id="adminChatSendBtn">發送</button>
-                            <button class="btn btn-outline" id="pttBtn" title="按住說話（語音廣播）"
-                                style="padding:6px 10px; font-size:1rem; border-color:var(--accent-primary); position:relative;">
-                                🎙️
-                                <span id="pttIndicator"
-                                    style="display:none; position:absolute; top:-3px; right:-3px; width:8px; height:8px; background:#f44336; border-radius:50%; animation:pulse 0.8s infinite;"></span>
-                            </button>
-                        </div>
                     </div>
                 </div>
 
-                <!-- Announcement Panel (Right) -->
-                <div class="card" style="flex:0 0 260px; min-width:240px;">
-                    <div class="card-header">
-                        <span class="icon">📢</span>
-                        <h2>發送公告</h2>
-                    </div>
-                    <div class="form-group">
-                        <input type="text" id="announceInput" class="form-input" placeholder="輸入公告內容..." maxlength="200"
-                            style="font-size:0.8rem;">
-                    </div>
-                    <button class="btn btn-primary btn-block" id="announceBtn" style="font-size:0.8rem;">📢
-                        發送公告</button>
-                    <div class="announce-templates" style="margin-top: 10px;">
-                        <p style="font-size: 0.7rem; color: var(--text-muted); margin-bottom: 6px;">快速樣板：</p>
-                        <div style="display:flex; flex-direction:column; gap:4px;">
-                            <button class="btn btn-xs btn-outline announce-tpl"
-                                style="text-align:left; font-size:0.7rem;">🎮 正在進行遊戲中</button>
-                            <button class="btn btn-xs btn-outline announce-tpl"
-                                style="text-align:left; font-size:0.7rem;">⏳ 請稍等，前一場尚未結束</button>
-                            <button class="btn btn-xs btn-outline announce-tpl"
-                                style="text-align:left; font-size:0.7rem;">✅ 輪到下一組了！</button>
-                            <button class="btn btn-xs btn-outline announce-tpl"
-                                style="text-align:left; font-size:0.7rem;">🔔 請準備上線</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+                <!-- Tab: Settings -->
+                <div class="tab-content" id="tab-settings">
+                    <div class="admin-layout">
+                        <div>
+                            <!-- Background Image -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <span class="icon">🖼️</span>
+                                    <h2>背景圖片</h2>
+                                </div>
+                                <div class="file-upload-area" id="bgUploadArea">
+                                    <div class="upload-icon">📁</div>
+                                    <p>點擊選擇圖片或拖拽到此處</p>
+                                    <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">支援
+                                        JPG、PNG、GIF、WebP（最大 10MB）</p>
+                                    <input type="file" id="bgFileInput" accept=".jpg,.jpeg,.png,.gif,.webp">
+                                </div>
+                                <div id="currentBgPreview" style="margin-top: 12px; display: none;">
+                                    <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 8px;">
+                                        目前背景：</p>
+                                    <img id="bgPreviewImg"
+                                        style="width: 100%; border-radius: var(--radius-sm); max-height: 200px; object-fit: cover;">
+                                    <div class="bg-editor" style="margin-top: 12px;">
+                                        <div class="form-group">
+                                            <label>顯示模式</label>
+                                            <select id="bgSizeSelect" class="form-input">
+                                                <option value="cover">填滿畫面 (cover)</option>
+                                                <option value="contain">完整顯示 (contain)</option>
+                                                <option value="100% 100%">拉伸填滿 (stretch)</option>
+                                            </select>
+                                        </div>
+                                        <div class="config-grid">
+                                            <div class="form-group">
+                                                <label>水平位置</label>
+                                                <select id="bgPosX" class="form-input">
+                                                    <option value="left">左</option>
+                                                    <option value="center" selected>中</option>
+                                                    <option value="right">右</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>垂直位置</label>
+                                                <select id="bgPosY" class="form-input">
+                                                    <option value="top">上</option>
+                                                    <option value="center" selected>中</option>
+                                                    <option value="bottom">下</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <button class="btn btn-outline btn-block" id="saveBgSettingsBtn">💾
+                                            儲存背景設定</button>
+                                    </div>
+                                    <div style="display:flex; gap:8px; margin-top:8px;">
+                                        <button class="btn btn-sm btn-outline" id="cropBgBtn">✂️ 裁切圖片</button>
+                                        <button class="btn btn-sm btn-danger" id="removeBgBtn">移除背景</button>
+                                    </div>
+                                </div>
+                            </div>
 
-        <!-- Tab: History -->
-        <div class="tab-content" id="tab-history">
-            <div class="card">
-                <div class="card-header">
-                    <span class="icon">📊</span>
-                    <h2>場次歷史紀錄</h2>
-                </div>
-                <div id="sessionHistoryList">
-                    <div class="empty-state">
-                        <p style="font-size:0.85rem;">載入中...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Tab: Settings -->
-        <div class="tab-content" id="tab-settings">
-            <div class="admin-layout">
-                <div>
-                    <!-- Background Image -->
-                    <div class="card">
-                        <div class="card-header">
-                            <span class="icon">🖼️</span>
-                            <h2>背景圖片</h2>
-                        </div>
-                        <div class="file-upload-area" id="bgUploadArea">
-                            <div class="upload-icon">📁</div>
-                            <p>點擊選擇圖片或拖拽到此處</p>
-                            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">支援
-                                JPG、PNG、GIF、WebP（最大 10MB）</p>
-                            <input type="file" id="bgFileInput" accept=".jpg,.jpeg,.png,.gif,.webp">
-                        </div>
-                        <div id="currentBgPreview" style="margin-top: 12px; display: none;">
-                            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 8px;">目前背景：</p>
-                            <img id="bgPreviewImg"
-                                style="width: 100%; border-radius: var(--radius-sm); max-height: 200px; object-fit: cover;">
-                            <div class="bg-editor" style="margin-top: 12px;">
+                            <!-- Password -->
+                            <div class="card" style="margin-top: 16px;">
+                                <div class="card-header">
+                                    <span class="icon">🔑</span>
+                                    <h2>修改密碼</h2>
+                                </div>
                                 <div class="form-group">
-                                    <label>顯示模式</label>
-                                    <select id="bgSizeSelect" class="form-input">
-                                        <option value="cover">填滿畫面 (cover)</option>
-                                        <option value="contain">完整顯示 (contain)</option>
-                                        <option value="100% 100%">拉伸填滿 (stretch)</option>
+                                    <label>新密碼</label>
+                                    <input type="password" id="newPassword" class="form-input" placeholder="輸入新密碼"
+                                        minlength="4">
+                                </div>
+                                <button class="btn btn-outline btn-block" id="changePasswordBtn">更新密碼</button>
+                            </div>
+
+                            <!-- Theme Settings -->
+                            <div class="card" style="margin-top: 16px;">
+                                <div class="card-header">
+                                    <span class="icon">🎨</span>
+                                    <h2>外觀設定</h2>
+                                </div>
+                                <div class="form-group">
+                                    <label>主題色</label>
+                                    <div class="theme-presets" id="themePresets">
+                                        <button class="theme-swatch active" data-color="#7c5cff"
+                                            style="background:#7c5cff;" title="紫色"></button>
+                                        <button class="theme-swatch" data-color="#4f8cff" style="background:#4f8cff;"
+                                            title="藍色"></button>
+                                        <button class="theme-swatch" data-color="#00c853" style="background:#00c853;"
+                                            title="綠色"></button>
+                                        <button class="theme-swatch" data-color="#ff5577" style="background:#ff5577;"
+                                            title="紅色"></button>
+                                        <button class="theme-swatch" data-color="#ff9800" style="background:#ff9800;"
+                                            title="橘色"></button>
+                                        <input type="color" id="themeCustomColor" value="#7c5cff" title="自訂色碼"
+                                            class="theme-color-input">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>背景色（主）</label>
+                                    <div style="display:flex;gap:8px;align-items:center;">
+                                        <input type="color" id="themeBgPrimary" value="#0a0a1a"
+                                            class="theme-color-input">
+                                        <code id="themeBgPrimaryVal"
+                                            style="font-size:0.75rem;color:var(--text-muted);">#0a0a1a</code>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>背景色（副）</label>
+                                    <div style="display:flex;gap:8px;align-items:center;">
+                                        <input type="color" id="themeBgSecondary" value="#12122a"
+                                            class="theme-color-input">
+                                        <code id="themeBgSecondaryVal"
+                                            style="font-size:0.75rem;color:var(--text-muted);">#12122a</code>
+                                    </div>
+                                </div>
+                                <hr style="border-color:var(--border-color);margin:12px 0;">
+                                <div class="form-group">
+                                    <label>標題字體大小 <span id="fontTitleVal"
+                                            style="color:var(--text-muted);">1.5rem</span></label>
+                                    <input type="range" id="fontSizeTitle" min="1" max="3" step="0.1" value="1.5"
+                                        class="form-range">
+                                </div>
+                                <div class="form-group">
+                                    <label>正文字體大小 <span id="fontBodyVal"
+                                            style="color:var(--text-muted);">0.9rem</span></label>
+                                    <input type="range" id="fontSizeBody" min="0.7" max="1.5" step="0.05" value="0.9"
+                                        class="form-range">
+                                </div>
+                                <div class="form-group">
+                                    <label>聊天字體大小 <span id="fontChatVal"
+                                            style="color:var(--text-muted);">0.85rem</span></label>
+                                    <input type="range" id="fontSizeChat" min="0.7" max="1.4" step="0.05" value="0.85"
+                                        class="form-range">
+                                </div>
+                                <div class="form-group">
+                                    <label>標籤字體大小 <span id="fontLabelVal"
+                                            style="color:var(--text-muted);">0.75rem</span></label>
+                                    <input type="range" id="fontSizeLabel" min="0.6" max="1.2" step="0.05" value="0.75"
+                                        class="form-range">
+                                </div>
+                                <div class="form-group">
+                                    <label>系統名稱</label>
+                                    <input type="text" id="systemNameInput" class="form-input" placeholder="🎮 莉刻報名系統">
+                                </div>
+                                <button class="btn btn-primary btn-block" id="saveThemeBtn">💾 儲存主題設定</button>
+                                <button class="btn btn-outline btn-block" id="resetThemeBtn" style="margin-top:6px;">🔄
+                                    重設為預設</button>
+                            </div>
+
+                            <!-- CAPTCHA & Scheduling -->
+                            <div class="card" style="margin-top:16px;">
+                                <div class="card-header">
+                                    <span class="icon">🛡️</span>
+                                    <h2>安全與排程</h2>
+                                </div>
+                                <!-- UI Style Toggle -->
+                                <div class="form-group" style="display:flex; align-items:center; gap:8px;">
+                                    <label style="flex:1; margin:0;">🎨 介面風格</label>
+                                    <select id="uiStyleSelect" class="form-input"
+                                        style="width:auto; padding:3px 8px; font-size:0.78rem;">
+                                        <option value="emoji">😊 Emoji 風格</option>
+                                        <option value="pro">✨ 專業 SaaS 風格</option>
                                     </select>
                                 </div>
-                                <div class="config-grid">
-                                    <div class="form-group">
-                                        <label>水平位置</label>
-                                        <select id="bgPosX" class="form-input">
-                                            <option value="left">左</option>
-                                            <option value="center" selected>中</option>
-                                            <option value="right">右</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>垂直位置</label>
-                                        <select id="bgPosY" class="form-input">
-                                            <option value="top">上</option>
-                                            <option value="center" selected>中</option>
-                                            <option value="bottom">下</option>
-                                        </select>
-                                    </div>
+                                <hr style="border-color:var(--border-color-light); margin:10px 0;">
+                                <!-- CAPTCHA Toggle -->
+                                <div class="form-group" style="display:flex; align-items:center; gap:8px;">
+                                    <label style="flex:1; margin:0;">🧩 防機器人驗證（算術題）</label>
+                                    <label class="switch">
+                                        <input type="checkbox" id="captchaToggle">
+                                        <span class="slider"></span>
+                                    </label>
                                 </div>
-                                <button class="btn btn-outline btn-block" id="saveBgSettingsBtn">💾 儲存背景設定</button>
+                                <hr style="border-color:var(--border-color-light); margin:10px 0;">
+                                <!-- Scheduled Close -->
+                                <div class="form-group">
+                                    <label>⏰ 排定自動關閉報名</label>
+                                    <input type="datetime-local" id="scheduledClose" class="form-input">
+                                </div>
+                                <!-- Scheduled Open -->
+                                <div class="form-group">
+                                    <label>⏰ 排定自動開啟報名</label>
+                                    <input type="datetime-local" id="scheduledOpen" class="form-input">
+                                </div>
+                                <button class="btn btn-primary btn-block" id="saveScheduleBtn">💾 儲存排程</button>
+                                <button class="btn btn-outline btn-block" id="clearScheduleBtn"
+                                    style="margin-top:4px; font-size:0.75rem;">🗑️ 清除排程</button>
                             </div>
-                            <div style="display:flex; gap:8px; margin-top:8px;">
-                                <button class="btn btn-sm btn-outline" id="cropBgBtn">✂️ 裁切圖片</button>
-                                <button class="btn btn-sm btn-danger" id="removeBgBtn">移除背景</button>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Password -->
-                    <div class="card" style="margin-top: 16px;">
-                        <div class="card-header">
-                            <span class="icon">🔑</span>
-                            <h2>修改密碼</h2>
-                        </div>
-                        <div class="form-group">
-                            <label>新密碼</label>
-                            <input type="password" id="newPassword" class="form-input" placeholder="輸入新密碼"
-                                minlength="4">
-                        </div>
-                        <button class="btn btn-outline btn-block" id="changePasswordBtn">更新密碼</button>
-                    </div>
-
-                    <!-- Theme Settings -->
-                    <div class="card" style="margin-top: 16px;">
-                        <div class="card-header">
-                            <span class="icon">🎨</span>
-                            <h2>外觀設定</h2>
-                        </div>
-                        <div class="form-group">
-                            <label>主題色</label>
-                            <div class="theme-presets" id="themePresets">
-                                <button class="theme-swatch active" data-color="#7c5cff" style="background:#7c5cff;"
-                                    title="紫色"></button>
-                                <button class="theme-swatch" data-color="#4f8cff" style="background:#4f8cff;"
-                                    title="藍色"></button>
-                                <button class="theme-swatch" data-color="#00c853" style="background:#00c853;"
-                                    title="綠色"></button>
-                                <button class="theme-swatch" data-color="#ff5577" style="background:#ff5577;"
-                                    title="紅色"></button>
-                                <button class="theme-swatch" data-color="#ff9800" style="background:#ff9800;"
-                                    title="橘色"></button>
-                                <input type="color" id="themeCustomColor" value="#7c5cff" title="自訂色碼"
-                                    class="theme-color-input">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>背景色（主）</label>
-                            <div style="display:flex;gap:8px;align-items:center;">
-                                <input type="color" id="themeBgPrimary" value="#0a0a1a" class="theme-color-input">
-                                <code id="themeBgPrimaryVal"
-                                    style="font-size:0.75rem;color:var(--text-muted);">#0a0a1a</code>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>背景色（副）</label>
-                            <div style="display:flex;gap:8px;align-items:center;">
-                                <input type="color" id="themeBgSecondary" value="#12122a" class="theme-color-input">
-                                <code id="themeBgSecondaryVal"
-                                    style="font-size:0.75rem;color:var(--text-muted);">#12122a</code>
-                            </div>
-                        </div>
-                        <hr style="border-color:var(--border-color);margin:12px 0;">
-                        <div class="form-group">
-                            <label>標題字體大小 <span id="fontTitleVal" style="color:var(--text-muted);">1.5rem</span></label>
-                            <input type="range" id="fontSizeTitle" min="1" max="3" step="0.1" value="1.5"
-                                class="form-range">
-                        </div>
-                        <div class="form-group">
-                            <label>正文字體大小 <span id="fontBodyVal" style="color:var(--text-muted);">0.9rem</span></label>
-                            <input type="range" id="fontSizeBody" min="0.7" max="1.5" step="0.05" value="0.9"
-                                class="form-range">
-                        </div>
-                        <div class="form-group">
-                            <label>聊天字體大小 <span id="fontChatVal" style="color:var(--text-muted);">0.85rem</span></label>
-                            <input type="range" id="fontSizeChat" min="0.7" max="1.4" step="0.05" value="0.85"
-                                class="form-range">
-                        </div>
-                        <div class="form-group">
-                            <label>標籤字體大小 <span id="fontLabelVal"
-                                    style="color:var(--text-muted);">0.75rem</span></label>
-                            <input type="range" id="fontSizeLabel" min="0.6" max="1.2" step="0.05" value="0.75"
-                                class="form-range">
-                        </div>
-                        <div class="form-group">
-                            <label>系統名稱</label>
-                            <input type="text" id="systemNameInput" class="form-input" placeholder="🎮 莉刻報名系統">
-                        </div>
-                        <button class="btn btn-primary btn-block" id="saveThemeBtn">💾 儲存主題設定</button>
-                        <button class="btn btn-outline btn-block" id="resetThemeBtn" style="margin-top:6px;">🔄
-                            重設為預設</button>
-                    </div>
-
-                    <!-- CAPTCHA & Scheduling -->
-                    <div class="card" style="margin-top:16px;">
-                        <div class="card-header">
-                            <span class="icon">🛡️</span>
-                            <h2>安全與排程</h2>
-                        </div>
-                        <!-- UI Style Toggle -->
-                        <div class="form-group" style="display:flex; align-items:center; gap:8px;">
-                            <label style="flex:1; margin:0;">🎨 介面風格</label>
-                            <select id="uiStyleSelect" class="form-input"
-                                style="width:auto; padding:3px 8px; font-size:0.78rem;">
-                                <option value="emoji">😊 Emoji 風格</option>
-                                <option value="pro">✨ 專業 SaaS 風格</option>
-                            </select>
-                        </div>
-                        <hr style="border-color:var(--border-color-light); margin:10px 0;">
-                        <!-- CAPTCHA Toggle -->
-                        <div class="form-group" style="display:flex; align-items:center; gap:8px;">
-                            <label style="flex:1; margin:0;">🧩 防機器人驗證（算術題）</label>
-                            <label class="switch">
-                                <input type="checkbox" id="captchaToggle">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                        <hr style="border-color:var(--border-color-light); margin:10px 0;">
-                        <!-- Scheduled Close -->
-                        <div class="form-group">
-                            <label>⏰ 排定自動關閉報名</label>
-                            <input type="datetime-local" id="scheduledClose" class="form-input">
-                        </div>
-                        <!-- Scheduled Open -->
-                        <div class="form-group">
-                            <label>⏰ 排定自動開啟報名</label>
-                            <input type="datetime-local" id="scheduledOpen" class="form-input">
-                        </div>
-                        <button class="btn btn-primary btn-block" id="saveScheduleBtn">💾 儲存排程</button>
-                        <button class="btn btn-outline btn-block" id="clearScheduleBtn"
-                            style="margin-top:4px; font-size:0.75rem;">🗑️ 清除排程</button>
-                    </div>
-
-                    <!-- Registration Rules -->
-                    <div class="card" style="margin-top:16px;">
-                        <div class="card-header">
-                            <span class="icon">📋</span>
-                            <h2>報名規則 / 須知</h2>
-                        </div>
-                        <div class="form-group" style="display:flex; align-items:center; gap:8px;">
-                            <label style="flex:1; margin:0;">啟用報名規則（報名前須勾選同意）</label>
-                            <label class="switch">
-                                <input type="checkbox" id="rulesToggle">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                        <div class="form-group">
-                            <textarea id="rulesText" class="form-input" rows="4" placeholder="輸入報名規則或注意事項...
+                            <!-- Registration Rules -->
+                            <div class="card" style="margin-top:16px;">
+                                <div class="card-header">
+                                    <span class="icon">📋</span>
+                                    <h2>報名規則 / 須知</h2>
+                                </div>
+                                <div class="form-group" style="display:flex; align-items:center; gap:8px;">
+                                    <label style="flex:1; margin:0;">啟用報名規則（報名前須勾選同意）</label>
+                                    <label class="switch">
+                                        <input type="checkbox" id="rulesToggle">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <textarea id="rulesText" class="form-input" rows="4" placeholder="輸入報名規則或注意事項...
 (支援換行)" style="resize:vertical; font-size:0.8rem;"></textarea>
-                        </div>
-                        <button class="btn btn-primary btn-block" id="saveRulesBtn">💾 儲存規則</button>
-                    </div>
-
-                    <!-- Custom Registration Fields -->
-                    <div class="card" style="margin-top:16px;">
-                        <div class="card-header">
-                            <span class="icon">📝</span>
-                            <h2>自訂報名欄位</h2>
-                        </div>
-                        <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:8px;">
-                            設定報名時需要填寫的額外欄位（最多 10 個）
-                        </p>
-                        <div id="customFieldsList"></div>
-                        <button class="btn btn-outline btn-block" id="addCustomFieldBtn" style="margin-top:8px;">
-                            ➕ 新增欄位
-                        </button>
-                        <button class="btn btn-primary btn-block" id="saveCustomFieldsBtn" style="margin-top:8px;">
-                            💾 儲存欄位設定
-                        </button>
-                        <button class="btn btn-outline btn-block" id="previewFormBtn" style="margin-top:6px;">
-                            👁️ 預覽報名表單
-                        </button>
-                        <!-- Form Preview Modal -->
-                        <div id="formPreviewModal"
-                            style="display:none; margin-top:10px; padding:12px; border:2px dashed var(--border-color); border-radius:8px; background:var(--bg-card);">
-                            <h3 style="font-size:0.85rem; margin-bottom:8px; color:var(--accent-primary);">📋 報名表單預覽
-                            </h3>
-                            <div id="formPreviewContent"></div>
-                        </div>
-                    </div>
-
-                    <!-- Late Records -->
-                    <div>
-                        <div class="card">
-                            <div class="card-header">
-                                <span class="icon">⚠️</span>
-                                <h2>遲到紀錄</h2>
+                                </div>
+                                <button class="btn btn-primary btn-block" id="saveRulesBtn">💾 儲存規則</button>
                             </div>
-                            <div id="lateRecordsList">
-                                <div class="empty-state">
-                                    <p style="font-size: 0.85rem;">沒有遲到紀錄</p>
+
+                            <!-- Custom Registration Fields -->
+                            <div class="card" style="margin-top:16px;">
+                                <div class="card-header">
+                                    <span class="icon">📝</span>
+                                    <h2>自訂報名欄位</h2>
+                                </div>
+                                <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:8px;">
+                                    設定報名時需要填寫的額外欄位（最多 10 個）
+                                </p>
+                                <div id="customFieldsList"></div>
+                                <button class="btn btn-outline btn-block" id="addCustomFieldBtn"
+                                    style="margin-top:8px;">
+                                    ➕ 新增欄位
+                                </button>
+                                <button class="btn btn-primary btn-block" id="saveCustomFieldsBtn"
+                                    style="margin-top:8px;">
+                                    💾 儲存欄位設定
+                                </button>
+                                <button class="btn btn-outline btn-block" id="previewFormBtn" style="margin-top:6px;">
+                                    👁️ 預覽報名表單
+                                </button>
+                                <!-- Form Preview Modal -->
+                                <div id="formPreviewModal"
+                                    style="display:none; margin-top:10px; padding:12px; border:2px dashed var(--border-color); border-radius:8px; background:var(--bg-card);">
+                                    <h3 style="font-size:0.85rem; margin-bottom:8px; color:var(--accent-primary);">📋
+                                        報名表單預覽
+                                    </h3>
+                                    <div id="formPreviewContent"></div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
 
-                    <!-- Ban List -->
-                    <div>
-                        <div class="card">
-                            <div class="card-header">
-                                <span class="icon">🚫</span>
-                                <h2>封禁名單</h2>
-                            </div>
-                            <div id="banListContainer">
-                                <div class="empty-state">
-                                    <p style="font-size: 0.85rem;">沒有已封禁的用戶</p>
+                            <!-- Late Records -->
+                            <div>
+                                <div class="card">
+                                    <div class="card-header">
+                                        <span class="icon">⚠️</span>
+                                        <h2>遲到紀錄</h2>
+                                    </div>
+                                    <div id="lateRecordsList">
+                                        <div class="empty-state">
+                                            <p style="font-size: 0.85rem;">沒有遲到紀錄</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <button class="btn btn-outline btn-block" id="loadBanListBtn" style="margin-top:8px;">
-                                🔄 載入封禁名單
-                            </button>
-                        </div>
-                    </div>
 
-                    <!-- Session Template -->
-                    <div>
-                        <div class="card">
-                            <div class="card-header">
-                                <span class="icon">📋</span>
-                                <h2>場次模板</h2>
+                            <!-- Ban List -->
+                            <div>
+                                <div class="card">
+                                    <div class="card-header">
+                                        <span class="icon">🚫</span>
+                                        <h2>封禁名單</h2>
+                                    </div>
+                                    <div id="banListContainer">
+                                        <div class="empty-state">
+                                            <p style="font-size: 0.85rem;">沒有已封禁的用戶</p>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-outline btn-block" id="loadBanListBtn"
+                                        style="margin-top:8px;">
+                                        🔄 載入封禁名單
+                                    </button>
+                                </div>
                             </div>
-                            <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:8px;">
-                                儲存目前的場次設定作為模板，下次可一鍵套用
-                            </p>
-                            <button class="btn btn-outline btn-block" id="saveTemplateBtn" style="margin-bottom:6px;">
-                                💾 儲存為模板
-                            </button>
-                            <button class="btn btn-outline btn-block" id="loadTemplateBtn">
-                                📥 套用模板
-                            </button>
-                            <div id="templateInfo" style="font-size:0.75rem; color:var(--text-muted); margin-top:6px;">
+
+                            <!-- Session Template -->
+                            <div>
+                                <div class="card">
+                                    <div class="card-header">
+                                        <span class="icon">📋</span>
+                                        <h2>場次模板</h2>
+                                    </div>
+                                    <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:8px;">
+                                        儲存目前的場次設定作為模板，下次可一鍵套用
+                                    </p>
+                                    <button class="btn btn-outline btn-block" id="saveTemplateBtn"
+                                        style="margin-bottom:6px;">
+                                        💾 儲存為模板
+                                    </button>
+                                    <button class="btn btn-outline btn-block" id="loadTemplateBtn">
+                                        📥 套用模板
+                                    </button>
+                                    <div id="templateInfo"
+                                        style="font-size:0.75rem; color:var(--text-muted); margin-top:6px;">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Blacklist Management -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <span class="icon emoji-only">🚫</span>
+                                    <span class="icon pro-only" style="color:var(--accent-danger);">
+                                        <i data-lucide="shield-ban" style="width:18px;height:18px;"></i>
+                                    </span>
+                                    <h2>黑名單管理</h2>
+                                </div>
+                                <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:12px;">
+                                    被封鎖的遊戲 ID 將無法報名任何場次
+                                </p>
+                                <div style="display:flex; gap:6px; margin-bottom:12px;">
+                                    <input type="text" class="form-input" id="blacklistGameId" placeholder="遊戲 ID"
+                                        style="flex:2; padding:6px 10px; font-size:0.8rem;">
+                                    <input type="text" class="form-input" id="blacklistReason" placeholder="原因（選填）"
+                                        style="flex:2; padding:6px 10px; font-size:0.8rem;">
+                                    <button class="btn btn-danger btn-sm" id="addBlacklistBtn"
+                                        style="white-space:nowrap;">
+                                        封鎖
+                                    </button>
+                                </div>
+                                <div id="blacklistList" style="max-height:200px; overflow-y:auto;">
+                                    <p style="font-size:0.78rem; color:var(--text-muted); text-align:center;">載入中...</p>
+                                </div>
+                            </div>
+
+                            <!-- Session Management -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <span class="icon emoji-only">🔐</span>
+                                    <span class="icon pro-only" style="color:var(--accent-info);">
+                                        <i data-lucide="shield-check" style="width:18px;height:18px;"></i>
+                                    </span>
+                                    <h2>登入 Session 管理</h2>
+                                </div>
+                                <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:12px;">
+                                    管理所有活躍的管理員登入。可撤銷可疑的 session。
+                                </p>
+                                <div id="sessionsList" style="max-height:250px; overflow-y:auto;">
+                                    <p style="font-size:0.78rem; color:var(--text-muted); text-align:center;">載入中...</p>
+                                </div>
+                                <button class="btn btn-outline btn-block btn-sm" id="revokeAllSessionsBtn"
+                                    style="margin-top:10px;">
+                                    🔒 撤銷所有其他 Session
+                                </button>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Blacklist Management -->
-                    <div class="card">
-                        <div class="card-header">
-                            <span class="icon emoji-only">🚫</span>
-                            <span class="icon pro-only" style="color:var(--accent-danger);">
-                                <i data-lucide="shield-ban" style="width:18px;height:18px;"></i>
-                            </span>
-                            <h2>黑名單管理</h2>
-                        </div>
-                        <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:12px;">
-                            被封鎖的遊戲 ID 將無法報名任何場次
-                        </p>
-                        <div style="display:flex; gap:6px; margin-bottom:12px;">
-                            <input type="text" class="form-input" id="blacklistGameId" placeholder="遊戲 ID"
-                                style="flex:2; padding:6px 10px; font-size:0.8rem;">
-                            <input type="text" class="form-input" id="blacklistReason" placeholder="原因（選填）"
-                                style="flex:2; padding:6px 10px; font-size:0.8rem;">
-                            <button class="btn btn-danger btn-sm" id="addBlacklistBtn" style="white-space:nowrap;">
-                                封鎖
-                            </button>
-                        </div>
-                        <div id="blacklistList" style="max-height:200px; overflow-y:auto;">
-                            <p style="font-size:0.78rem; color:var(--text-muted); text-align:center;">載入中...</p>
-                        </div>
-                    </div>
+            </main><!-- end admin-main-content -->
+        </div><!-- end admin-sidebar-layout -->
+    </div><!-- end adminDashboard -->
 
-                    <!-- Session Management -->
-                    <div class="card">
-                        <div class="card-header">
-                            <span class="icon emoji-only">🔐</span>
-                            <span class="icon pro-only" style="color:var(--accent-info);">
-                                <i data-lucide="shield-check" style="width:18px;height:18px;"></i>
-                            </span>
-                            <h2>登入 Session 管理</h2>
-                        </div>
-                        <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:12px;">
-                            管理所有活躍的管理員登入。可撤銷可疑的 session。
-                        </p>
-                        <div id="sessionsList" style="max-height:250px; overflow-y:auto;">
-                            <p style="font-size:0.78rem; color:var(--text-muted); text-align:center;">載入中...</p>
-                        </div>
-                        <button class="btn btn-outline btn-block btn-sm" id="revokeAllSessionsBtn"
-                            style="margin-top:10px;">
-                            🔒 撤銷所有其他 Session
-                        </button>
-                    </div>
+    <!-- Crop Modal (canvas-based, no external deps) -->
+    <div id="cropModal" class="crop-modal" style="display:none;">
+        <div class="crop-modal-inner">
+            <h3 style="margin-bottom:12px;">✂️ 裁切背景圖片</h3>
+            <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:8px;">拖曳選取裁切區域</p>
+            <div style="position:relative; overflow:hidden; border-radius:8px; border:1px solid var(--border-color);">
+                <canvas id="cropCanvas" style="width:100%; display:block; cursor:crosshair;"></canvas>
+                <div id="cropOverlay"
+                    style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;">
                 </div>
             </div>
-        </div>
-
-        <!-- Crop Modal (canvas-based, no external deps) -->
-        <div id="cropModal" class="crop-modal" style="display:none;">
-            <div class="crop-modal-inner">
-                <h3 style="margin-bottom:12px;">✂️ 裁切背景圖片</h3>
-                <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:8px;">拖曳選取裁切區域</p>
-                <div
-                    style="position:relative; overflow:hidden; border-radius:8px; border:1px solid var(--border-color);">
-                    <canvas id="cropCanvas" style="width:100%; display:block; cursor:crosshair;"></canvas>
-                    <div id="cropOverlay"
-                        style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;">
-                    </div>
-                </div>
-                <div style="display:flex; gap:10px; margin-top:16px; justify-content:flex-end;">
-                    <button class="btn btn-outline" id="cropCancelBtn">取消</button>
-                    <button class="btn btn-outline" id="cropResetBtn">🔄 重選</button>
-                    <button class="btn btn-primary" id="cropApplyBtn">✅ 套用裁切</button>
-                </div>
+            <div style="display:flex; gap:10px; margin-top:16px; justify-content:flex-end;">
+                <button class="btn btn-outline" id="cropCancelBtn">取消</button>
+                <button class="btn btn-outline" id="cropResetBtn">🔄 重選</button>
+                <button class="btn btn-primary" id="cropApplyBtn">✅ 套用裁切</button>
             </div>
         </div>
+    </div>
 
-        <!-- Notification sound -->
-        <audio id="notifSound" preload="auto">
-            <source
-                src="data:audio/wav;base64,UklGRl9vT19teleVibmFtZQBNaWNyb3NvZnQgU291bmQgU3RyZWFtaW5nIEF1ZGlvIENvZGVj"
-                type="audio/wav">
-        </audio>
+    <!-- Notification sound -->
+    <audio id="notifSound" preload="auto">
+        <source src="data:audio/wav;base64,UklGRl9vT19teleVibmFtZQBNaWNyb3NvZnQgU291bmQgU3RyZWFtaW5nIEF1ZGlvIENvZGVj"
+            type="audio/wav">
+    </audio>
 
-        <script src="/socket.io/socket.io.js"></script>
-        <script src="/js/admin.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/admin.js"></script>
 </body>
 
 </html>
