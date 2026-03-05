@@ -1802,5 +1802,30 @@
     loadCaptchaToggle();
     loadSchedule();
     loadRules();
+    loadUiStyle();
+
+    // ═══════════════════════════════════════════════════════════════════
+    // UI STYLE TOGGLE
+    // ═══════════════════════════════════════════════════════════════════
+    const uiStyleSelect = $('#uiStyleSelect');
+    async function loadUiStyle() {
+        try {
+            const data = await api('/admin/ui-style');
+            if (uiStyleSelect) uiStyleSelect.value = data.style || 'emoji';
+            document.body.setAttribute('data-ui-style', data.style || 'emoji');
+        } catch (e) { /* ignore */ }
+    }
+    if (uiStyleSelect) {
+        uiStyleSelect.addEventListener('change', async () => {
+            try {
+                const data = await api('/admin/ui-style', {
+                    method: 'PUT',
+                    body: { style: uiStyleSelect.value }
+                });
+                document.body.setAttribute('data-ui-style', data.style);
+                showToast(data.style === 'pro' ? '✨ 已切換為專業風格' : '😊 已切換為 Emoji 風格');
+            } catch (e) { showToast(e.message, 'error'); }
+        });
+    }
 
 })();

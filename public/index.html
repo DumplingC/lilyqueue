@@ -8,8 +8,10 @@
   <meta name="theme-color" content="#7c5cff">
   <title>🎮 莉刻報名系統</title>
   <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/pro-theme.css">
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
 </head>
 
 <body>
@@ -18,7 +20,8 @@
     <!-- Compact Header -->
     <header class="app-header">
       <div class="header-brand">
-        <h1 id="userSystemName">🎮 莉刻報名系統</h1>
+        <img src="/icons/logo-pro.png" class="pro-logo pro-only" alt="Logo">
+        <h1 id="userSystemName"><span class="emoji-only">🎮 </span>莉刻報名系統<span class="pro-badge">PRO</span></h1>
         <p class="subtitle" id="sessionTitle">載入中...</p>
         <div id="countdownTimer" style="display:none; font-size:0.78rem; color:var(--accent-warning); font-weight:600;">
           ⏱️ <span id="countdownText"></span>
@@ -55,7 +58,8 @@
         <!-- Registration Form -->
         <div class="card" id="registerCard" style="display: none;">
           <div class="card-header">
-            <span class="icon">📝</span>
+            <span class="icon emoji-only">📝</span>
+            <i data-lucide="clipboard-list" class="pro-icon pro-only"></i>
             <h2>填寫報名資料</h2>
           </div>
           <form id="registerForm">
@@ -137,7 +141,8 @@
         <!-- Results -->
         <div class="card" id="resultsCard" style="display: none;">
           <div class="card-header">
-            <span class="icon">📊</span>
+            <span class="icon emoji-only">📊</span>
+            <i data-lucide="bar-chart-3" class="pro-icon pro-only"></i>
             <h2>錄取結果</h2>
           </div>
           <div class="results-section" id="resultsContent"></div>

@@ -1127,6 +1127,18 @@
         }
     });
 
+    // ─── UI Style (emoji vs pro) ────────────────────────────────────
+    async function loadUiStyle() {
+        try {
+            const res = await fetch('/api/ui-style');
+            const data = await res.json();
+            document.body.setAttribute('data-ui-style', data.style || 'emoji');
+            if (data.style === 'pro' && typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        } catch (e) { /* ignore */ }
+    }
+
     // ─── Init ─────────────────────────────────────────────────────────
     applyColorTheme(getPreferredTheme());
     restoreState();
@@ -1135,6 +1147,7 @@
     loadTheme();
     loadCaptcha();
     loadRules();
+    loadUiStyle();
     requestNotifPermission();
     applyLanguage();
 

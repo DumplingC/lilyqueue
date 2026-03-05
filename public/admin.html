@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🎮 管理後台 — 莉刻報名系統</title>
     <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/pro-theme.css">
 </head>
 
 <body>
@@ -480,6 +481,16 @@
                             <span class="icon">🛡️</span>
                             <h2>安全與排程</h2>
                         </div>
+                        <!-- UI Style Toggle -->
+                        <div class="form-group" style="display:flex; align-items:center; gap:8px;">
+                            <label style="flex:1; margin:0;">🎨 介面風格</label>
+                            <select id="uiStyleSelect" class="form-input"
+                                style="width:auto; padding:3px 8px; font-size:0.78rem;">
+                                <option value="emoji">😊 Emoji 風格</option>
+                                <option value="pro">✨ 專業 SaaS 風格</option>
+                            </select>
+                        </div>
+                        <hr style="border-color:var(--border-color-light); margin:10px 0;">
                         <!-- CAPTCHA Toggle -->
                         <div class="form-group" style="display:flex; align-items:center; gap:8px;">
                             <label style="flex:1; margin:0;">🧩 防機器人驗證（算術題）</label>
@@ -618,7 +629,8 @@
                     style="position:relative; overflow:hidden; border-radius:8px; border:1px solid var(--border-color);">
                     <canvas id="cropCanvas" style="width:100%; display:block; cursor:crosshair;"></canvas>
                     <div id="cropOverlay"
-                        style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;"></div>
+                        style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;">
+                    </div>
                 </div>
                 <div style="display:flex; gap:10px; margin-top:16px; justify-content:flex-end;">
                     <button class="btn btn-outline" id="cropCancelBtn">取消</button>

@@ -1,0 +1,183 @@
+/* ═══════════════════════════════════════════════════════════════════
+   PRO THEME — Professional SaaS look
+   Applied when body has [data-ui-style="pro"]
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* By default, pro elements are hidden */
+.pro-only {
+    display: none !important;
+}
+
+.emoji-only {
+    display: inline;
+}
+
+/* When pro mode is active */
+[data-ui-style="pro"] .pro-only {
+    display: inline-flex !important;
+}
+
+[data-ui-style="pro"] .emoji-only {
+    display: none !important;
+}
+
+/* ─── Pro Logo ──────────────────────────────────────────────────── */
+.pro-logo {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    object-fit: contain;
+    margin-right: 8px;
+}
+
+[data-ui-style="pro"] .app-header .header-brand {
+    flex-direction: row;
+    align-items: center;
+}
+
+[data-ui-style="pro"] .app-header h1 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+}
+
+/* ─── Lucide Icon Styling ───────────────────────────────────────── */
+[data-ui-style="pro"] .pro-icon {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+    vertical-align: -2px;
+    margin-right: 4px;
+    flex-shrink: 0;
+}
+
+[data-ui-style="pro"] .card-header .pro-icon {
+    width: 20px;
+    height: 20px;
+    color: var(--accent-primary);
+}
+
+/* ─── Card Header Refinements ───────────────────────────────────── */
+[data-ui-style="pro"] .card-header .icon {
+    display: none;
+}
+
+[data-ui-style="pro"] .card-header h2 {
+    font-size: 0.92rem;
+    font-weight: 600;
+    letter-spacing: -0.2px;
+}
+
+/* ─── Button Refinements ────────────────────────────────────────── */
+[data-ui-style="pro"] .btn {
+    font-weight: 500;
+    letter-spacing: 0;
+    border-radius: 8px;
+}
+
+[data-ui-style="pro"] .btn-primary {
+    box-shadow: 0 1px 3px rgba(124, 92, 255, 0.3);
+}
+
+/* ─── Status Strip ──────────────────────────────────────────────── */
+[data-ui-style="pro"] .status-strip {
+    font-size: 0.72rem;
+    padding: 5px 14px;
+}
+
+/* ─── Status Result Card ────────────────────────────────────────── */
+[data-ui-style="pro"] .status-result-icon {
+    font-size: 1.8rem;
+}
+
+[data-ui-style="pro"] .status-result-title {
+    font-size: 0.95rem;
+}
+
+/* ─── Empty States ──────────────────────────────────────────────── */
+[data-ui-style="pro"] .empty-icon {
+    font-size: 2rem;
+    opacity: 0.5;
+}
+
+[data-ui-style="pro"] .empty-state p {
+    font-size: 0.8rem;
+}
+
+/* ─── Chat Tabs ─────────────────────────────────────────────────── */
+[data-ui-style="pro"] .chat-tab {
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+/* ─── Header Controls ───────────────────────────────────────────── */
+[data-ui-style="pro"] .theme-toggle-btn {
+    font-size: 0.78rem;
+}
+
+[data-ui-style="pro"] .lang-select {
+    font-size: 0.68rem;
+}
+
+/* ─── Form Labels ───────────────────────────────────────────────── */
+[data-ui-style="pro"] .form-group label {
+    font-size: 0.78rem;
+    font-weight: 500;
+}
+
+/* ─── Badges ────────────────────────────────────────────────────── */
+[data-ui-style="pro"] .badge {
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+}
+
+/* ─── Toast ─────────────────────────────────────────────────────── */
+[data-ui-style="pro"] .toast {
+    font-size: 0.78rem;
+    border-radius: 8px;
+}
+
+/* ─── Overall Tighter Spacing ───────────────────────────────────── */
+[data-ui-style="pro"] .card {
+    padding: 22px;
+}
+
+[data-ui-style="pro"] .card-header {
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+}
+
+/* ─── Pro Indicator Badge ───────────────────────────────────────── */
+.pro-badge {
+    display: none;
+    font-size: 0.55rem;
+    background: var(--gradient-primary);
+    color: white;
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-left: 6px;
+    vertical-align: middle;
+}
+
+[data-ui-style="pro"] .pro-badge {
+    display: inline;
+}
+
+/* ─── Desktop Pro Header ────────────────────────────────────────── */
+@media (min-width: 768px) {
+    [data-ui-style="pro"] .app-header h1 {
+        font-size: 1.3rem;
+    }
+
+    [data-ui-style="pro"] .pro-logo {
+        width: 36px;
+        height: 36px;
+    }
+}

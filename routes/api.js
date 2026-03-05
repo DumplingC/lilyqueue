@@ -999,6 +999,23 @@ tr:nth-child(even) { background: #f8f9fa; }
     res.send(html);
 });
 
+// ─── UI Style Toggle ──────────────────────────────────────────────
+router.get('/admin/ui-style', requireAdmin, (req, res) => {
+    res.json({ style: db.getSettingValue('ui_style', 'emoji') });
+});
+
+router.put('/admin/ui-style', requireAdmin, (req, res) => {
+    const style = req.body.style === 'pro' ? 'pro' : 'emoji';
+    db.setSettingValue('ui_style', style);
+    logAudit('setting', 'ui_style', `UI 風格切換為 ${style}`);
+    res.json({ message: '已切換', style });
+});
+
+// Public UI style (for user page)
+router.get('/ui-style', (req, res) => {
+    res.json({ style: db.getSettingValue('ui_style', 'emoji') });
+});
+
 // ─── CAPTCHA Toggle ───────────────────────────────────────────────
 router.get('/admin/captcha-toggle', requireAdmin, (req, res) => {
     res.json({ enabled: db.getSettingValue('captcha_enabled', 'false') === 'true' });
