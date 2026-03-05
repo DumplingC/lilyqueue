@@ -135,6 +135,8 @@ async function initialize() {
   try { db.run('ALTER TABLE registrations ADD COLUMN extra_data TEXT'); } catch (e) { /* already exists */ }
   // Add fingerprint column for browser fingerprinting
   try { db.run('ALTER TABLE registrations ADD COLUMN fingerprint TEXT'); } catch (e) { /* already exists */ }
+  // Add ip_address column for anti-cheat
+  try { db.run('ALTER TABLE registrations ADD COLUMN ip_address TEXT'); } catch (e) { /* already exists */ }
 
   // Admin audit log
   db.run(`CREATE TABLE IF NOT EXISTS admin_audit_log (

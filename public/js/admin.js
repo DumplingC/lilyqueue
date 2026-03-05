@@ -395,6 +395,7 @@
       <table class="reg-table">
         <thead>
           <tr>
+            <th style="width:30px;"></th>
             <th>#</th>
             <th>遊戲 ID</th>
             <th>顯示名稱</th>
@@ -413,6 +414,7 @@
                 : '';
             html += `
         <tr data-id="${reg.id}">
+          <td><input type="checkbox" class="reg-checkbox" data-id="${reg.id}" style="accent-color:var(--accent-primary);"></td>
           <td class="rank">${idx + 1}</td>
           <td class="game-id">${escapeHtml(reg.game_id)} ${lateTag} ${susTag}</td>
           <td>${escapeHtml(reg.display_name)}</td>
@@ -1920,6 +1922,130 @@
                 document.body.setAttribute('data-ui-style', data.style);
                 showToast(data.style === 'pro' ? '✨ 已切換為專業風格' : '😊 已切換為 Emoji 風格');
             } catch (e) { showToast(e.message, 'error'); }
+        });
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // BLACKLIST MANAGEMENT
+    // ═══════════════════════════════════════════════════════════════════
+    async function loadBlacklist() {
+        try {
+            const list = await api('/admin/blacklist');
+            const container = $('#blacklistList');
+            if (!container) return;
+            if (list.length === 0) {
+                container.innerHTML = '<p style="font-size:0.78rem; color:var(--text-muted); text-align:center;">黑名單為空</p>';
+                return;
+            }
+            container.innerHTML = list.map(b => `
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:6px 8px; border-bottom:1px solid var(--border-color-light); font-size:0.8rem;">
+                    <div>
+                        <strong>${b.game_id}</strong>
+                        <span style="color:var(--text-muted); margin-left:6px;">${b.reason || ''}</span>
+                    </div>
+                    <button class="btn btn-xs btn-outline" onclick="removeBlacklist('${b.game_id.replace(/'/g, "\\'")}')">解封</button>
+                </div>
+            `).join('');
+        } catch (e) { /* ignore */ }
+    }
+
+    window.removeBlacklist = async function (gameId) {
+        try {
+            await api('/admin/blacklist/' + encodeURIComponent(gameId), { method: 'DELETE' });
+            showToast(`已將 ${gameId} 從黑名單移除`);
+            loadBlacklist();
+        } catch (e) { showToast(e.message, 'error'); }
+    };
+
+    const addBlacklistBtn = $('#addBlacklistBtn');
+    if (addBlacklistBtn) {
+        addBlacklistBtn.addEventListener('click', async () => {
+            const gameId = $('#blacklistGameId').value.trim();
+            const reason = $('#blacklistReason').value.trim();
+            if (!gameId) return showToast('請輸入遊戲 ID', 'error');
+            try {
+                await api('/admin/blacklist', { method: 'POST', body: { gameId, reason } });
+                showToast(`已將 ${gameId} 加入黑名單`);
+                $('#blacklistGameId').value = '';
+                $('#blacklistReason').value = '';
+                loadBlacklist();
+            } catch (e) { showToast(e.message, 'error'); }
+        });
+    }
+    loadBlacklist();
+
+    // ═══════════════════════════════════════════════════════════════════
+    // BATCH OPERATIONS
+    // ═══════════════════════════════════════════════════════════════════
+    function getSelectedRegIds() {
+        return [...document.querySelectorAll('.reg-checkbox:checked')].map(cb => parseInt(cb.dataset.id));
+    }
+
+    function updateBatchUI() {
+        const count = getSelectedRegIds().length;
+        const countEl = $('#selectedCount');
+        if (countEl) countEl.textContent = `已選 ${count} 筆`;
+        const btns = ['#batchApproveBtn', '#batchRejectBtn', '#batchDeleteBtn'];
+        btns.forEach(sel => {
+            const btn = $(sel);
+            if (btn) btn.disabled = count === 0;
+        });
+    }
+
+    const selectAll = $('#selectAllRegs');
+    if (selectAll) {
+        selectAll.addEventListener('change', () => {
+            document.querySelectorAll('.reg-checkbox').forEach(cb => {
+                cb.checked = selectAll.checked;
+            });
+            updateBatchUI();
+        });
+    }
+
+    // Delegate checkbox changes on registration list
+    document.addEventListener('change', (e) => {
+        if (e.target.classList.contains('reg-checkbox')) updateBatchUI();
+    });
+
+    async function batchAction(action) {
+        const ids = getSelectedRegIds();
+        if (ids.length === 0) return;
+        const labels = { approved: '通過', rejected: '拒絕', delete: '刪除' };
+        if (!confirm(`確定要批次${labels[action]} ${ids.length} 筆報名嗎？`)) return;
+        try {
+            const result = await api('/admin/registrations/batch', {
+                method: 'PUT',
+                body: { ids, action }
+            });
+            showToast(result.message);
+            if (selectAll) selectAll.checked = false;
+            loadRegistrations();
+        } catch (e) { showToast(e.message, 'error'); }
+    }
+
+    const batchApproveBtn = $('#batchApproveBtn');
+    const batchRejectBtn = $('#batchRejectBtn');
+    const batchDeleteBtn = $('#batchDeleteBtn');
+    if (batchApproveBtn) batchApproveBtn.addEventListener('click', () => batchAction('approved'));
+    if (batchRejectBtn) batchRejectBtn.addEventListener('click', () => batchAction('rejected'));
+    if (batchDeleteBtn) batchDeleteBtn.addEventListener('click', () => batchAction('delete'));
+
+    // ═══════════════════════════════════════════════════════════════════
+    // QR CODE
+    // ═══════════════════════════════════════════════════════════════════
+    const qrCodeBtn = $('#qrCodeBtn');
+    if (qrCodeBtn) {
+        qrCodeBtn.addEventListener('click', async () => {
+            try {
+                const data = await api('/admin/qrcode');
+                $('#qrCodeImg').src = data.qr;
+                $('#qrCodeUrl').textContent = data.url;
+                const modal = $('#qrModal');
+                modal.style.display = 'flex';
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) modal.style.display = 'none';
+                }, { once: true });
+            } catch (e) { showToast('QR Code 生成失敗：' + e.message, 'error'); }
         });
     }
 

@@ -168,6 +168,12 @@ router.post('/register', (req, res) => {
             db.runSql('UPDATE registrations SET fingerprint = ? WHERE id = ?', [sanitize(req.body.fingerprint), result.id]);
         }
 
+        // Save IP address for anti-cheat
+        const clientIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || '';
+        if (clientIp) {
+            db.runSql('UPDATE registrations SET ip_address = ? WHERE id = ?', [clientIp, result.id]);
+        }
+
         // Generate confirmation code
         const confirmCode = crypto.randomBytes(3).toString('hex').toUpperCase();
         db.runSql('UPDATE registrations SET extra_data = json_set(COALESCE(extra_data, \'{}\'), \'$.confirmCode\', ?) WHERE id = ?', [confirmCode, result.id]);
@@ -1065,6 +1071,97 @@ router.put('/admin/schedule', requireAdmin, (req, res) => {
     }
 
     res.json({ message: '排程已設定' });
+});
+
+// ═══════════════════════════════════════════════════════════════════
+// BLACKLIST (BAN) MANAGEMENT
+// ═══════════════════════════════════════════════════════════════════
+
+// List all banned users
+router.get('/admin/blacklist', requireAdmin, (req, res) => {
+    const rows = db.getAll('SELECT game_id, reason, banned_at FROM banned_users ORDER BY banned_at DESC');
+    res.json(rows);
+});
+
+// Ban a user
+router.post('/admin/blacklist', requireAdmin, (req, res) => {
+    const gameId = sanitize(req.body.gameId || '').trim();
+    const reason = sanitize(req.body.reason || '').trim();
+    if (!gameId) return res.status(400).json({ error: '請輸入遊戲 ID' });
+
+    if (db.isBanned(gameId)) {
+        return res.status(409).json({ error: '此 ID 已在黑名單中' });
+    }
+
+    db.runSql('INSERT INTO banned_users (game_id, reason) VALUES (?, ?)', [gameId, reason]);
+    logAudit('blacklist', 'add', `封鎖 ${gameId}：${reason || '無原因'}`);
+    res.json({ message: `已將 ${gameId} 加入黑名單` });
+});
+
+// Unban a user
+router.delete('/admin/blacklist/:gameId', requireAdmin, (req, res) => {
+    const gameId = decodeURIComponent(req.params.gameId);
+    db.runSql('DELETE FROM banned_users WHERE game_id = ?', [gameId]);
+    logAudit('blacklist', 'remove', `解封 ${gameId}`);
+    res.json({ message: `已將 ${gameId} 從黑名單移除` });
+});
+
+// ═══════════════════════════════════════════════════════════════════
+// BATCH OPERATIONS
+// ═══════════════════════════════════════════════════════════════════
+
+router.put('/admin/registrations/batch', requireAdmin, (req, res) => {
+    const { ids, action } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ error: '請選擇至少一筆報名' });
+    }
+
+    const validActions = ['approved', 'rejected', 'pending', 'delete'];
+    if (!validActions.includes(action)) {
+        return res.status(400).json({ error: '無效的操作' });
+    }
+
+    const session = db.getActiveSession();
+    if (!session) return res.status(400).json({ error: '沒有進行中的場次' });
+
+    let affected = 0;
+    if (action === 'delete') {
+        for (const id of ids) {
+            db.runSql('DELETE FROM registrations WHERE id = ? AND session_id = ?', [id, session.id]);
+            affected++;
+        }
+        logAudit('batch', 'delete', `批次刪除 ${affected} 筆報名`);
+    } else {
+        for (const id of ids) {
+            db.runSql('UPDATE registrations SET status = ? WHERE id = ? AND session_id = ?', [action, id, session.id]);
+            affected++;
+        }
+        logAudit('batch', action, `批次${action === 'approved' ? '通過' : action === 'rejected' ? '拒絕' : '重設'} ${affected} 筆報名`);
+    }
+
+    // Notify all clients to refresh
+    const io = req.app.io;
+    if (io) {
+        io.to('admin').emit('registrations:updated');
+        io.to('registered').emit('registrations:updated');
+    }
+
+    res.json({ message: `已處理 ${affected} 筆報名`, affected });
+});
+
+// ═══════════════════════════════════════════════════════════════════
+// QR CODE
+// ═══════════════════════════════════════════════════════════════════
+
+router.get('/admin/qrcode', requireAdmin, async (req, res) => {
+    try {
+        const QRCode = require('qrcode');
+        const serverUrl = db.getSettingValue('server_url', req.protocol + '://' + req.get('host'));
+        const qrDataUrl = await QRCode.toDataURL(serverUrl, { width: 300, margin: 2, color: { dark: '#8B5CF6', light: '#020205' } });
+        res.json({ qr: qrDataUrl, url: serverUrl });
+    } catch (e) {
+        res.status(500).json({ error: 'QR Code 生成失敗：' + e.message });
+    }
 });
 
 module.exports = router;
