@@ -1,0 +1,434 @@
+<!-- 把 Stitch 生成的管理後台 HTML 貼在這裡 -->
+ <!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Lily Queue Admin Dashboard</title>
+<script type="text/javascript" nonce="81a75bf591e34b37b2938160bad" src="//local.adguard.org?ts=1772686010428&amp;type=content-script&amp;dmn=contribution.usercontent.google.com&amp;url=https%3A%2F%2Fcontribution.usercontent.google.com%2Fdownload%3Fc%3DCgthaWRhX2NvZGVmeBJ8Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpbCiVodG1sXzU4MDExM2RlMDY4YzQ3YzZhYjg1OWFkYjNjODM2YjFmEgsSBxCrgvy6wAsYAZIBJAoKcHJvamVjdF9pZBIWQhQxODI4MjgxODE1NTkzNzM5NzU3OA%26filename%3D%26opi%3D89354086&amp;app=brave.exe&amp;css=3&amp;js=1&amp;rel=1&amp;rji=1&amp;sbe=1"></script><script type="text/javascript" nonce="81a75bf591e34b37b2938160bad" src="//local.adguard.org?ts=1772686010428&amp;name=AdGuard%20Extra&amp;type=user-script"></script><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#7c5cff",
+                        "background-light": "#f6f5f8",
+                        "background-dark": "#0f0f1a",
+                        "card-dark": "#1a1a2e",
+                        "border-dark": "#2d2d44"
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-panel {
+            background: rgba(26, 26, 46, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .gradient-primary {
+            background: linear-gradient(135deg, #7c5cff 0%, #a855f7 100%);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #2d2d44;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+<!-- Top Bar -->
+<header class="flex items-center justify-between mb-8">
+<div class="flex items-center gap-3">
+<div class="size-10 gradient-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined">queue</span>
+</div>
+<h1 class="text-xl font-bold tracking-tight" id="adminSystemName">Lily Queue</h1>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center bg-card-dark/50 px-4 py-2 rounded-full border border-border-dark">
+<span class="size-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
+<span class="text-sm font-medium" id="clientCount">Online: 42</span>
+</div>
+<button class="p-2.5 rounded-full bg-card-dark border border-border-dark hover:bg-primary/20 transition-colors" id="soundToggle">
+<span class="material-symbols-outlined text-xl">notifications</span>
+</button>
+<div class="size-10 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center overflow-hidden">
+<div class="w-full h-full bg-cover" data-alt="Admin user avatar portrait" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC4AxnKWmnsthGftYq04UKuLAhHEqHWKT5lYVZNp3KQpr3gXduqhmtfy9EFwrE6U0xC996HimmqYynHu6TRPgGFGqS6ADhnMecEf3s4quzTc3EA3uwR5-mYrVs6YEDEYpKgw2kwXsSzMjdrez0EV-7Pupv4q2LiJ_r1llDAf5Are3iBAICu-oQT5uRtoKcOmP4ima3r0MEvSJi6LwlnpyKUfEYTXqcioQz5dON8Y4Ah5OCDpfquM3E9jknCF07X-4y6JSky065Bz0vU')"></div>
+</div>
+</div>
+</header>
+<!-- Share URL Bar -->
+<div class="glass-panel rounded-2xl p-4 mb-8 flex items-center justify-between gap-4 border border-white/5" id="shareUrlBar">
+<div class="flex items-center gap-3 flex-1 overflow-hidden">
+<span class="material-symbols-outlined text-primary">link</span>
+<span class="text-sm font-mono text-slate-400 truncate" id="shareUrl">https://lilyqueue.app/join/session-772-alpha</span>
+</div>
+<button class="flex items-center gap-2 bg-primary px-4 py-2 rounded-lg text-sm font-semibold hover:bg-primary/80 transition-all" id="copyUrlBtn">
+<span class="material-symbols-outlined text-sm">content_copy</span>
+                Copy Link
+            </button>
+</div>
+<!-- Tab Navigation -->
+<nav class="flex gap-2 mb-8 overflow-x-auto pb-2 custom-scrollbar">
+<button class="bg-primary text-white px-6 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap">Session Management</button>
+<button class="bg-card-dark text-slate-400 hover:text-white px-6 py-2.5 rounded-full text-sm font-semibold transition-colors border border-border-dark whitespace-nowrap">Registration List</button>
+<button class="bg-card-dark text-slate-400 hover:text-white px-6 py-2.5 rounded-full text-sm font-semibold transition-colors border border-border-dark whitespace-nowrap">Chat Room</button>
+<button class="bg-card-dark text-slate-400 hover:text-white px-6 py-2.5 rounded-full text-sm font-semibold transition-colors border border-border-dark whitespace-nowrap">History</button>
+<button class="bg-card-dark text-slate-400 hover:text-white px-6 py-2.5 rounded-full text-sm font-semibold transition-colors border border-border-dark whitespace-nowrap">Settings</button>
+</nav>
+<!-- Main Content Area -->
+<main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Left Column: Stats & Control -->
+<div class="lg:col-span-2 space-y-8">
+<!-- Dashboard Stats -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="dashboardStats">
+<div class="glass-panel p-5 rounded-2xl flex flex-col gap-2 relative overflow-hidden group">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-primary bg-primary/10 p-2 rounded-lg">groups</span>
+<span class="text-xs font-bold text-green-400 bg-green-400/10 px-2 py-1 rounded">+12%</span>
+</div>
+<p class="text-slate-400 text-xs font-medium uppercase tracking-wider">Total Players</p>
+<p class="text-2xl font-bold">1,284</p>
+<div class="absolute bottom-0 left-0 w-full h-1 bg-primary/20"></div>
+</div>
+<div class="glass-panel p-5 rounded-2xl flex flex-col gap-2 relative overflow-hidden group">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-orange-400 bg-orange-400/10 p-2 rounded-lg">schedule</span>
+<span class="text-xs font-bold text-slate-400 bg-slate-400/10 px-2 py-1 rounded">Avg</span>
+</div>
+<p class="text-slate-400 text-xs font-medium uppercase tracking-wider">Wait Time</p>
+<p class="text-2xl font-bold">14m 20s</p>
+<div class="absolute bottom-0 left-0 w-full h-1 bg-orange-400/20"></div>
+</div>
+<div class="glass-panel p-5 rounded-2xl flex flex-col gap-2 relative overflow-hidden group">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-blue-400 bg-blue-400/10 p-2 rounded-lg">check_circle</span>
+<span class="text-xs font-bold text-blue-400 bg-blue-400/10 px-2 py-1 rounded">High</span>
+</div>
+<p class="text-slate-400 text-xs font-medium uppercase tracking-wider">Success Rate</p>
+<p class="text-2xl font-bold">98.2%</p>
+<div class="absolute bottom-0 left-0 w-full h-1 bg-blue-400/20"></div>
+</div>
+</div>
+<!-- Session Control Card -->
+<div class="glass-panel rounded-2xl p-6 border border-white/5" id="sessionControlCard">
+<div class="flex items-center justify-between mb-8">
+<div>
+<h3 class="text-lg font-bold">Session Configuration</h3>
+<p class="text-sm text-slate-400">Set up your lobby parameters and launch</p>
+</div>
+<div class="px-3 py-1 rounded-full bg-slate-800 text-slate-400 text-xs font-bold flex items-center gap-1.5 border border-slate-700" id="sessionStatusBadge">
+<span class="size-1.5 bg-slate-500 rounded-full"></span>
+                            INACTIVE
+                        </div>
+</div>
+<!-- No Active Session View (Default) -->
+<div class="space-y-6" id="noSessionView">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="space-y-2">
+<label class="text-sm font-medium text-slate-300">Session Title</label>
+<input class="w-full bg-card-dark border-border-dark rounded-xl focus:ring-primary focus:border-primary text-sm" id="newTitle" placeholder="e.g. Community Tournament #4" type="text"/>
+</div>
+<div class="space-y-2">
+<label class="text-sm font-medium text-slate-300">Start Time</label>
+<input class="w-full bg-card-dark border-border-dark rounded-xl focus:ring-primary focus:border-primary text-sm" id="newStartTime" type="datetime-local"/>
+</div>
+<div class="space-y-2">
+<label class="text-sm font-medium text-slate-300">Main Slots</label>
+<input class="w-full bg-card-dark border-border-dark rounded-xl focus:ring-primary focus:border-primary text-sm" id="newMainSlots" type="number" value="10"/>
+</div>
+<div class="space-y-2">
+<label class="text-sm font-medium text-slate-300">Waitlist Slots</label>
+<input class="w-full bg-card-dark border-border-dark rounded-xl focus:ring-primary focus:border-primary text-sm" id="newWaitlistSlots" type="number" value="50"/>
+</div>
+<div class="space-y-2 md:col-span-2">
+<label class="text-sm font-medium text-slate-300">Late Policy</label>
+<select class="w-full bg-card-dark border-border-dark rounded-xl focus:ring-primary focus:border-primary text-sm" id="newLatePolicy">
+<option>Strict (Kick after 5m)</option>
+<option>Graceful (15m window)</option>
+<option>Lenient (Move to end of list)</option>
+</select>
+</div>
+</div>
+<button class="w-full py-4 gradient-primary rounded-xl font-bold text-lg shadow-xl shadow-primary/30 hover:opacity-90 transition-opacity" id="createSessionBtn">
+                            Create Session
+                        </button>
+</div>
+<!-- Active Session View (Hidden by default) -->
+<div class="hidden space-y-6" id="activeSessionView">
+<div class="p-4 bg-primary/5 border border-primary/20 rounded-xl flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="p-3 bg-primary rounded-lg text-white">
+<span class="material-symbols-outlined">rocket_launch</span>
+</div>
+<div>
+<p class="text-xl font-bold" id="adminSlotCounter">12 / 100 Filled</p>
+<p class="text-xs text-slate-400 uppercase font-bold tracking-widest">Active Players</p>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="p-2 bg-card-dark rounded-lg hover:text-primary transition-colors border border-border-dark"><span class="material-symbols-outlined">edit</span></button>
+<button class="p-2 bg-card-dark rounded-lg hover:text-red-400 transition-colors border border-border-dark"><span class="material-symbols-outlined">stop</span></button>
+</div>
+</div>
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+<button class="flex flex-col items-center gap-2 p-3 bg-card-dark rounded-xl border border-border-dark hover:border-primary transition-all">
+<span class="material-symbols-outlined text-primary">person_add</span>
+<span class="text-xs font-semibold">Toggle Reg</span>
+</button>
+<button class="flex flex-col items-center gap-2 p-3 bg-card-dark rounded-xl border border-border-dark hover:border-primary transition-all">
+<span class="material-symbols-outlined text-primary">shuffle</span>
+<span class="text-xs font-semibold">Run Selection</span>
+</button>
+<button class="flex flex-col items-center gap-2 p-3 bg-card-dark rounded-xl border border-border-dark hover:border-primary transition-all text-red-400">
+<span class="material-symbols-outlined">cancel</span>
+<span class="text-xs font-semibold">End Session</span>
+</button>
+<button class="flex flex-col items-center gap-2 p-3 bg-card-dark rounded-xl border border-border-dark hover:border-primary transition-all">
+<span class="material-symbols-outlined text-primary">campaign</span>
+<span class="text-xs font-semibold">Announce</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Audit Log & Sidebar -->
+<div class="space-y-8">
+<div class="glass-panel rounded-2xl h-[565px] flex flex-col overflow-hidden border border-white/5" id="auditLogContainer">
+<div class="p-5 border-b border-border-dark flex items-center justify-between">
+<h3 class="font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-400 text-lg">history_edu</span>
+                            System Log
+                        </h3>
+<span class="text-[10px] bg-slate-800 px-2 py-0.5 rounded text-slate-400">LIVE</span>
+</div>
+<div class="p-4 flex-1 overflow-y-auto custom-scrollbar space-y-4">
+<div class="flex gap-3">
+<div class="size-2 bg-green-500 rounded-full mt-1.5 shrink-0"></div>
+<div class="text-sm">
+<p class="text-slate-300">System connected to relay</p>
+<p class="text-[10px] text-slate-500 mt-0.5">2 minutes ago</p>
+</div>
+</div>
+<div class="flex gap-3">
+<div class="size-2 bg-primary rounded-full mt-1.5 shrink-0"></div>
+<div class="text-sm">
+<p class="text-slate-300"><span class="font-bold text-white">Admin</span> updated slot limits</p>
+<p class="text-[10px] text-slate-500 mt-0.5">15 minutes ago</p>
+</div>
+</div>
+<div class="flex gap-3">
+<div class="size-2 bg-orange-400 rounded-full mt-1.5 shrink-0"></div>
+<div class="text-sm">
+<p class="text-slate-300">Session auto-archive failed</p>
+<p class="text-[10px] text-slate-500 mt-0.5">1 hour ago</p>
+</div>
+</div>
+<div class="flex gap-3">
+<div class="size-2 bg-slate-600 rounded-full mt-1.5 shrink-0"></div>
+<div class="text-sm">
+<p class="text-slate-300">Server heartbeat check: OK</p>
+<p class="text-[10px] text-slate-500 mt-0.5">2 hours ago</p>
+</div>
+</div>
+</div>
+<div class="p-4 bg-black/20 text-center">
+<button class="text-xs font-bold text-primary hover:underline">View Full Audit Trail</button>
+</div>
+</div>
+</div>
+</main>
+<!-- Hidden Sections for Navigation Reference -->
+<!-- Registrations (Mockup) -->
+<section class="hidden mt-12" id="registrationsSection">
+<div class="glass-panel rounded-2xl border border-white/5 overflow-hidden">
+<div class="p-6 border-b border-border-dark flex items-center justify-between flex-wrap gap-4">
+<div class="flex items-center gap-3">
+<h2 class="text-xl font-bold">Active Registrations</h2>
+<span class="bg-primary/20 text-primary text-xs font-bold px-2 py-1 rounded-lg" id="regCountBadge">128 Pending</span>
+</div>
+<div class="flex gap-2">
+<button class="p-2 rounded-lg border border-border-dark bg-card-dark text-slate-400"><span class="material-symbols-outlined">search</span></button>
+<button class="p-2 rounded-lg border border-border-dark bg-card-dark text-slate-400"><span class="material-symbols-outlined">download</span></button>
+<button class="px-4 py-2 bg-primary rounded-lg text-sm font-bold">Clear All</button>
+</div>
+</div>
+<div class="overflow-x-auto" id="registrationsList">
+<table class="w-full text-left">
+<thead class="bg-black/20 text-xs font-bold text-slate-500 uppercase">
+<tr>
+<th class="px-6 py-4">Pos</th>
+<th class="px-6 py-4">Game ID</th>
+<th class="px-6 py-4">Joined</th>
+<th class="px-6 py-4">Status</th>
+<th class="px-6 py-4 text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-border-dark">
+<tr class="hover:bg-white/5 transition-colors">
+<td class="px-6 py-4 text-sm font-bold text-primary">#01</td>
+<td class="px-6 py-4 text-sm">ShadowHunter_99</td>
+<td class="px-6 py-4 text-xs text-slate-400">2m ago</td>
+<td class="px-6 py-4"><span class="bg-green-500/10 text-green-500 px-2 py-1 rounded text-[10px] font-bold">VERIFIED</span></td>
+<td class="px-6 py-4 text-right flex justify-end gap-2">
+<button class="p-1.5 hover:text-primary"><span class="material-symbols-outlined text-sm">visibility</span></button>
+<button class="p-1.5 hover:text-red-400"><span class="material-symbols-outlined text-sm">delete</span></button>
+</td>
+</tr>
+<tr class="hover:bg-white/5 transition-colors">
+<td class="px-6 py-4 text-sm font-bold text-primary">#02</td>
+<td class="px-6 py-4 text-sm">NeonViper_X</td>
+<td class="px-6 py-4 text-xs text-slate-400">5m ago</td>
+<td class="px-6 py-4"><span class="bg-blue-500/10 text-blue-500 px-2 py-1 rounded text-[10px] font-bold">QUEUED</span></td>
+<td class="px-6 py-4 text-right flex justify-end gap-2">
+<button class="p-1.5 hover:text-primary"><span class="material-symbols-outlined text-sm">visibility</span></button>
+<button class="p-1.5 hover:text-red-400"><span class="material-symbols-outlined text-sm">delete</span></button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<!-- Chat Room (Mockup) -->
+<section class="hidden mt-12 grid grid-cols-1 lg:grid-cols-4 gap-8" id="chatSection">
+<div class="lg:col-span-3 glass-panel rounded-2xl flex flex-col h-[600px] border border-white/5">
+<div class="p-4 border-b border-border-dark font-bold">Session Chat</div>
+<div class="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar" id="adminChatMessages">
+<div class="flex flex-col items-start max-w-[80%]">
+<span class="text-[10px] text-slate-500 mb-1 ml-1">ShadowHunter_99</span>
+<div class="bg-card-dark border border-border-dark p-3 rounded-2xl rounded-tl-none text-sm">
+                            When does the lobby open?
+                        </div>
+</div>
+<div class="flex flex-col items-end self-end ml-auto max-w-[80%]">
+<span class="text-[10px] text-slate-500 mb-1 mr-1">Admin</span>
+<div class="bg-primary p-3 rounded-2xl rounded-tr-none text-sm">
+                            In approximately 5 minutes!
+                        </div>
+</div>
+</div>
+<div class="p-4 bg-black/20 flex gap-3 items-center">
+<button class="text-slate-400 hover:text-white" id="adminEmojiPicker"><span class="material-symbols-outlined">mood</span></button>
+<input class="flex-1 bg-transparent border-none focus:ring-0 text-sm" placeholder="Type a message..." type="text"/>
+<button class="bg-red-500/20 text-red-500 px-4 py-2 rounded-lg font-bold text-xs flex items-center gap-2 border border-red-500/30" id="pttBtn">
+<span class="material-symbols-outlined text-sm">mic</span>
+                        PTT
+                    </button>
+<button class="p-2 bg-primary rounded-lg text-white"><span class="material-symbols-outlined">send</span></button>
+</div>
+</div>
+<div class="glass-panel rounded-2xl p-5 border border-white/5 space-y-4">
+<h3 class="font-bold text-sm uppercase text-slate-400 tracking-widest">Templates</h3>
+<div class="space-y-2">
+<button class="w-full text-left p-3 text-xs bg-card-dark rounded-xl border border-border-dark hover:border-primary transition-all">Welcome players...</button>
+<button class="w-full text-left p-3 text-xs bg-card-dark rounded-xl border border-border-dark hover:border-primary transition-all">Rules Reminder</button>
+<button class="w-full text-left p-3 text-xs bg-card-dark rounded-xl border border-border-dark hover:border-primary transition-all">Starting Now!</button>
+</div>
+</div>
+</section>
+<!-- History (Mockup) -->
+<section class="hidden mt-12" id="historySection">
+<div class="space-y-4" id="sessionHistoryList">
+<div class="glass-panel p-5 rounded-2xl border border-white/5 flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="size-12 bg-card-dark rounded-xl flex items-center justify-center text-slate-400 border border-border-dark">
+<span class="material-symbols-outlined">inventory_2</span>
+</div>
+<div>
+<p class="font-bold">Weekend Brawl #03</p>
+<p class="text-xs text-slate-500">Oct 12, 2023 • 156 Players</p>
+</div>
+</div>
+<button class="text-primary text-sm font-bold hover:underline">View Report</button>
+</div>
+<div class="glass-panel p-5 rounded-2xl border border-white/5 flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="size-12 bg-card-dark rounded-xl flex items-center justify-center text-slate-400 border border-border-dark">
+<span class="material-symbols-outlined">inventory_2</span>
+</div>
+<div>
+<p class="font-bold">Community Open Mic</p>
+<p class="text-xs text-slate-500">Oct 10, 2023 • 42 Players</p>
+</div>
+</div>
+<button class="text-primary text-sm font-bold hover:underline">View Report</button>
+</div>
+</div>
+</section>
+<!-- Settings (Mockup) -->
+<section class="hidden mt-12 grid grid-cols-1 md:grid-cols-2 gap-6" id="settingsSection">
+<div class="glass-panel rounded-2xl p-6 border border-white/5">
+<h3 class="font-bold mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">palette</span>
+                    Appearance
+                </h3>
+<div class="space-y-4">
+<div class="flex items-center justify-between">
+<span class="text-sm">Dark Mode</span>
+<div class="w-10 h-5 bg-primary rounded-full relative"><div class="absolute right-0.5 top-0.5 size-4 bg-white rounded-full"></div></div>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-sm">Compact UI</span>
+<div class="w-10 h-5 bg-slate-700 rounded-full relative"><div class="absolute left-0.5 top-0.5 size-4 bg-white rounded-full"></div></div>
+</div>
+</div>
+</div>
+<div class="glass-panel rounded-2xl p-6 border border-white/5">
+<h3 class="font-bold mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">security</span>
+                    Security
+                </h3>
+<div class="space-y-4">
+<button class="w-full bg-card-dark border border-border-dark py-2 px-4 rounded-lg text-sm font-semibold">Regenerate API Key</button>
+<button class="w-full bg-card-dark border border-border-dark py-2 px-4 rounded-lg text-sm font-semibold">Two-Factor Auth</button>
+</div>
+</div>
+<div class="glass-panel rounded-2xl p-6 border border-white/5">
+<h3 class="font-bold mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">gavel</span>
+                    Rules
+                </h3>
+<div class="space-y-2">
+<textarea class="w-full bg-card-dark border-border-dark rounded-xl h-24 text-xs" placeholder="Define queue rules..."></textarea>
+</div>
+</div>
+<div class="glass-panel rounded-2xl p-6 border border-white/5">
+<h3 class="font-bold mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">add_circle</span>
+                    Custom Fields
+                </h3>
+<div class="space-y-2">
+<div class="flex gap-2">
+<input class="flex-1 bg-card-dark border-border-dark rounded-lg text-xs" type="text" value="Discord ID"/>
+<button class="p-2 text-red-400"><span class="material-symbols-outlined">delete</span></button>
+</div>
+<button class="text-primary text-xs font-bold">+ Add Field</button>
+</div>
+</div>
+</section>
+</div>
+</body></html>

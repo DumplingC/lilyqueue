@@ -11,7 +11,17 @@
   <link rel="stylesheet" href="/css/pro-theme.css">
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+    rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+  <style>
+    .gradient-title {
+      background: linear-gradient(135deg, #8B5CF6, #D946EF);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+  </style>
 </head>
 
 <body>
@@ -21,7 +31,8 @@
     <header class="app-header">
       <div class="header-brand">
         <img src="/icons/logo-pro.png" class="pro-logo pro-only" alt="Logo">
-        <h1 id="userSystemName"><span class="emoji-only">🎮 </span>莉刻報名系統<span class="pro-badge">PRO</span></h1>
+        <h1 id="userSystemName" class="gradient-title"><span class="emoji-only">🎮 </span>莉刻報名系統<span
+            class="pro-badge">PRO</span></h1>
         <p class="subtitle" id="sessionTitle">載入中...</p>
         <div id="countdownTimer" style="display:none; font-size:0.78rem; color:var(--accent-warning); font-weight:600;">
           ⏱️ <span id="countdownText"></span>
@@ -131,8 +142,8 @@
 
         <!-- Closed -->
         <div class="card" id="closedCard" style="display: none;">
-          <div class="empty-state">
-            <div class="empty-icon">🔒</div>
+          <div class="empty-state" style="text-align:center;">
+            <img src="/icons/empty-closed.png" alt="" style="width:96px; height:96px; margin:0 auto 16px; opacity:0.7;">
             <p>目前沒有開放報名的場次</p>
             <p class="hint">請等待主辦人開啟報名</p>
           </div>

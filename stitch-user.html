@@ -1,0 +1,274 @@
+<!-- 把 Stitch 生成的用戶頁面 HTML 貼在這裡 -->
+ <!DOCTYPE html>
+
+<html class="dark" lang="zh-TW"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Lily Queue - 莉刻報名系統</title>
+<script type="text/javascript" nonce="81a75bf591e34b37b2938160bad" src="//local.adguard.org?ts=1772686010428&amp;type=content-script&amp;dmn=contribution.usercontent.google.com&amp;url=https%3A%2F%2Fcontribution.usercontent.google.com%2Fdownload%3Fc%3DCgthaWRhX2NvZGVmeBJ8Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpbCiVodG1sXzIyNDQ1NDc1OGJlNzQyMmRhYzU4YmU5ODM2ODliZmU0EgsSBxCrgvy6wAsYAZIBJAoKcHJvamVjdF9pZBIWQhQxODI4MjgxODE1NTkzNzM5NzU3OA%26filename%3D%26opi%3D89354086&amp;app=brave.exe&amp;css=3&amp;js=1&amp;rel=1&amp;rji=1&amp;sbe=1"></script><script type="text/javascript" nonce="81a75bf591e34b37b2938160bad" src="//local.adguard.org?ts=1772686010428&amp;name=AdGuard%20Extra&amp;type=user-script"></script><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#8B5CF6",
+                        "secondary": "#D946EF",
+                        "background-light": "#f5f5f7",
+                        "background-dark": "#020205",
+                        "glass": "rgba(255, 255, 255, 0.03)",
+                        "glass-border": "rgba(255, 255, 255, 0.08)",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "-apple-system", "BlinkMacSystemFont", "sans-serif"]
+                    },
+                    letterSpacing: {
+                        "tightest": "-0.02em",
+                        "relaxed-plus": "0.05em"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "0.75rem",
+                        "xl": "1rem",
+                        "2xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(25px) saturate(180%);
+            -webkit-backdrop-filter: blur(25px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: inset 0 0 1px 1px rgba(255, 255, 255, 0.05);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(139, 92, 246, 0.2);
+            border-radius: 10px;
+        }
+    </style>
+<style>
+        body {
+            background-color: #020205;
+            overflow-x: hidden;
+            position: relative;
+        }
+        .futuristic-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: 
+                radial-gradient(at 0% 0%, rgba(139, 92, 246, 0.08) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(217, 70, 239, 0.05) 0px, transparent 50%),
+                radial-gradient(at 50% 50%, rgba(10, 10, 15, 1) 0px, transparent 100%),
+                #020205;
+        }
+        .icon-glow {
+            filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.3));
+        }
+        .premium-btn {
+            background: linear-gradient(135deg, #8B5CF6 0%, #D946EF 100%);
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.2);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .premium-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+            filter: brightness(1.05);
+        }
+        .apple-pill {
+            border-radius: 999px !important;
+        }
+    </style></head>
+<body class="font-display text-slate-900 dark:text-slate-100 min-h-screen"><div class="futuristic-bg" style="background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.95)), url('{{DATA:IMAGE:IMAGE_7}}'); background-size: cover; background-position: center;">
+<div class="bg-glow glow-1"></div>
+<div class="bg-glow glow-2"></div>
+</div>
+<!-- Floating Voice Broadcast -->
+<div class="hidden fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-red-500/90 text-white px-6 py-2 rounded-full shadow-lg flex items-center gap-2 animate-pulse" id="voiceBroadcastBanner">
+<span class="material-symbols-outlined text-sm">volume_up</span>
+<span class="text-xs font-bold uppercase tracking-wider">正在廣播中...</span>
+</div>
+<div class="max-w-[1100px] mx-auto px-4 py-6">
+<!-- Header Section -->
+<header class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+<div class="flex items-center gap-4">
+<div class="size-10 flex items-center justify-center">
+<img alt="Lily Queue Logo" class="w-8 h-8 icon-glow" data-alt="Purple abstract gaming logo icon" id="logoImg" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAtgqQbcv--RJfLeMRNvMW3l122-om4ijl7AOtLeo9nmM9KbK1I4ybLKUlzaQ3PFPuSDo-4IJ-yuGPARzKALUhmVkC1MqlSC-7sv8HbBs5u0eogjjesCc1xt_XZrVyuwu7L3W0DVJ-hQ6jfoMuUp-0lVxy1HMWfIDHhNkiiJvUIP-g6b27wz6q0aLWLa2O79-c6udWmc6adkezsCWd0LWSFueQaCKSkimUTIJz1x8NoZS91fOHs8BCJ3rNvBO97F99hpMa21FUJFWUQ"/>
+</div>
+<div>
+<h1 class="text-2xl font-semibold tracking-tightest bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary" id="userSystemName">Lily Queue</h1>
+<p class="text-slate-400 text-sm font-normal tracking-relaxed-plus" id="sessionTitle">莉刻報名系統 - 當前賽事報名中</p>
+</div>
+<div class="hidden bg-orange-500/20 text-orange-500 px-3 py-1 rounded-lg text-sm font-bold border border-orange-500/30" id="countdownTimer">
+                    00:00
+                </div>
+</div>
+<div class="flex items-center gap-3">
+<select class="bg-glass border-glass-border rounded-full px-4 py-1.5 text-xs font-medium focus:ring-primary focus:border-primary transition-all cursor-pointer apple-pill" id="langSwitcher">
+<option value="zh-TW">繁體中文</option>
+<option value="en">English</option>
+</select>
+<button class="p-2 rounded-full bg-glass border border-glass-border hover:bg-primary/10 transition-colors" id="themeToggleBtn">
+<span class="material-symbols-outlined text-xl">dark_mode</span>
+</button>
+<button class="p-2 rounded-full bg-glass border border-glass-border hover:bg-primary/10 transition-colors" id="muteToggleBtn">
+<span class="material-symbols-outlined text-xl">volume_up</span>
+</button>
+</div>
+</header>
+<!-- Status Strip -->
+<div class="glass-card rounded-2xl p-6 mb-10 flex flex-col md:flex-row md:items-center gap-6">
+<div class="flex items-center gap-3 shrink-0">
+<span class="h-2.5 w-2.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)] shadow-[0_0_12px_#22c55e]" id="statusDot"></span>
+<span class="text-xs font-bold uppercase tracking-[0.1em] text-white/90" id="statusText">開放中</span>
+</div>
+<div class="hidden md:block w-px h-6 bg-glass-border mx-2"></div>
+<div class="text-sm font-medium text-slate-400" id="slotCounter">
+                剩餘名額: <span class="text-primary font-bold">42</span> / 100
+            </div>
+<div class="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-gradient-to-r from-primary to-purple-500 w-[58%] rounded-full" id="progressFill"></div>
+</div>
+</div>
+<div class="flex flex-col lg:flex-row gap-8 items-start">
+<!-- Left Column: Registration/Status (60%) -->
+<main class="w-full lg:w-[60%] space-y-6">
+<!-- Registration Card -->
+<div class="glass-card rounded-2xl p-10 lg:p-12" id="registerCard">
+<h2 class="text-2xl font-semibold tracking-tightest mb-8 flex items-center gap-2"><div class="flex items-center gap-3">
+<img alt="Controller Icon" class="w-12 h-12 object-contain icon-glow" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBFA4sC_VdQwUWCFO2ZhmXKJT09TStDcd30BHNBhER9H7sfj_MvCUz0Vdl7kPKIAwuBvgOmhtZsKJr8ejqKiw-7S66h5zdXq8jCkrXWEtIcgC0aXvXj_jcHmFfKRMqGLj3JY-wRuPkJ3NHgmsVDmnfHPo0AVbfB7c9UtQn6VaOAaQY843pvrvhrhmYooCY_zw_jj-niQXIl95fDuZ5XjNAafNt4lunFLqlEv7fxGZJrv7V1CoWvznPUu2ptdoVHx4SXjPO2vMHp1xYa"/>
+<span>填寫報名資訊</span>
+</div></h2>
+<form class="space-y-5">
+<div class="space-y-2">
+<label class="text-xs font-normal text-slate-400 ml-1 tracking-relaxed-plus uppercase">遊戲 ID *</label>
+<input class="w-full bg-white/5 border border-white/5 rounded-xl px-5 py-4 focus:ring-1 focus:ring-primary/50 focus:border-primary/50 outline-none transition-all placeholder:text-slate-600 text-sm" id="gameId" placeholder="例如: LilyGamer#1234" type="text"/>
+</div>
+<div class="space-y-2">
+<label class="text-xs font-normal text-slate-400 ml-1 tracking-relaxed-plus uppercase">顯示名稱</label>
+<input class="w-full bg-white/5 border border-white/5 rounded-xl px-5 py-4 focus:ring-1 focus:ring-primary/50 focus:border-primary/50 outline-none transition-all placeholder:text-slate-600 text-sm" id="displayName" placeholder="在列表中顯示的名字" type="text"/>
+</div>
+<!-- Hidden CAPTCHA & Rules -->
+<div class="hidden p-4 bg-primary/5 border border-primary/20 rounded-xl" id="captchaGroup">
+<p class="text-xs font-bold text-primary mb-2 uppercase">驗證碼</p>
+<!-- Captcha Placeholder -->
+</div>
+<div class="hidden p-4 bg-glass border border-glass-border rounded-xl text-xs text-slate-400 leading-relaxed" id="rulesGroup">
+                            請務必遵守賽事守則，報名即視同同意相關規範。
+                        </div>
+<div class="pt-4 flex flex-col sm:flex-row gap-3">
+<button class="flex-1 premium-btn text-white font-semibold py-4 rounded-xl transition-all active:scale-[0.98] apple-pill" id="submitBtn">
+                                確認報名
+                            </button>
+<button class="flex-1 bg-glass border border-glass-border hover:bg-glass/20 text-slate-300 font-bold py-4 rounded-xl transition-all apple-pill" id="historyLookupBtn">
+                                歷史報名查詢
+                            </button>
+</div>
+</form>
+</div>
+<!-- Status Display Card (Initially Hidden) -->
+<div class="hidden glass-card rounded-2xl p-10 text-center border-t-4 border-t-primary" id="statusDisplayCard">
+<div class="size-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6" id="statusIcon">
+<span class="material-symbols-outlined text-4xl text-primary animate-pulse">hourglass_top</span>
+</div>
+<h2 class="text-2xl font-bold mb-2" id="statusTitle">等待管理員審核</h2>
+<p class="text-slate-400 mb-8" id="statusMessage">您的報名資料已成功提交，請耐心等候。</p>
+<div class="grid grid-cols-2 gap-4 mb-8">
+<div class="p-4 bg-glass rounded-xl border border-glass-border">
+<p class="text-xs text-slate-500 font-bold uppercase mb-1">遊戲 ID</p>
+<span class="text-lg font-mono text-primary font-bold" id="registeredGameId">LilyGamer#1234</span>
+</div>
+<div class="p-4 bg-glass rounded-xl border border-glass-border">
+<p class="text-xs text-slate-500 font-bold uppercase mb-1">隊伍位置</p>
+<span class="text-lg font-bold" id="positionNum">#12</span>
+</div>
+</div>
+<div class="hidden mt-6 p-4 bg-slate-900 border border-slate-800 rounded-lg font-mono text-sm tracking-widest text-slate-300" id="confirmCodeDisplay">
+                        AUTH-8821-X99
+                    </div>
+</div>
+<!-- Closed Card (Initially Hidden) -->
+<div class="hidden glass-card rounded-2xl p-12 text-center flex flex-col items-center justify-center" id="closedCard">
+<img alt="Closed Session" class="w-24 h-24 mx-auto mb-6 opacity-80 filter grayscale-[0.2]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBFA4sC_VdQwUWCFO2ZhmXKJT09TStDcd30BHNBhER9H7sfj_MvCUz0Vdl7kPKIAwuBvgOmhtZsKJr8ejqKiw-7S66h5zdXq8jCkrXWEtIcgC0aXvXj_jcHmFfKRMqGLj3JY-wRuPkJ3NHgmsVDmnfHPo0AVbfB7c9UtQn6VaOAaQY843pvrvhrhmYooCY_zw_jj-niQXIl95fDuZ5XjNAafNt4lunFLqlEv7fxGZJrv7V1CoWvznPUu2ptdoVHx4SXjPO2vMHp1xYa"/>
+<h2 class="text-xl font-bold">目前沒有開放報名的場次</h2>
+<p class="text-slate-500 mt-2">請關注最新消息或聯繫管理員</p>
+</div>
+<!-- Results Card (Initially Hidden) -->
+<div class="hidden glass-card rounded-2xl p-8" id="resultsCard">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-primary">assessment</span>
+<h2 class="text-xl font-bold">錄取結果</h2>
+</div>
+<div class="space-y-4" id="resultsContent">
+<!-- Content injection point -->
+</div>
+</div>
+</main>
+<!-- Right Column: Sidebar Chat (40%) -->
+<aside class="w-full lg:w-[40%] flex flex-col glass-card rounded-2xl h-[650px] overflow-hidden" id="chatColumn">
+<!-- Announcement Banner -->
+<div class="hidden bg-primary/20 border-b border-primary/30 p-3 flex items-center gap-3" id="announcementBanner">
+<span class="material-symbols-outlined text-primary text-sm">campaign</span>
+<p class="text-xs font-medium truncate">歡迎參加本次報名，祝各位好運！</p>
+</div>
+<!-- Tabs -->
+<div class="flex border-b border-glass-border">
+<button class="flex-1 py-4 text-sm font-bold border-b-2 border-primary text-white flex items-center justify-center gap-2" data-tab="messages">
+                        聊天
+                    </button>
+<button class="flex-1 py-4 text-sm font-bold text-slate-500 hover:text-slate-300 transition-colors flex items-center justify-center gap-2" data-tab="online">
+                        在線
+                        <span class="bg-primary/20 text-primary text-[10px] px-2 py-0.5 rounded-full border border-primary/30" id="onlineCountBadge">128</span>
+</button>
+</div>
+<!-- Chat Area -->
+<div class="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar bg-black/10" id="chatMessages">
+<div class="flex flex-col gap-1 max-w-[90%]">
+<span class="text-[10px] text-white/40 font-semibold ml-3">System</span>
+<div class="bg-white/10 px-4 py-2.5 rounded-[20px] rounded-tl-none">
+<p class="text-sm text-white/90 leading-relaxed">歡迎進入聊天室，請保持友好與和諧。</p>
+</div>
+</div>
+<div class="flex flex-col gap-1 max-w-[90%] ml-auto items-end">
+<span class="text-[10px] text-primary/80 font-semibold mr-3">Player123</span>
+<div class="bg-primary px-4 py-2.5 rounded-[20px] rounded-tr-none shadow-lg">
+<p class="text-sm text-white leading-relaxed">有人知道幾點開始嗎？</p>
+</div>
+</div>
+</div>
+<!-- Chat Input Row -->
+<div class="p-4 border-t border-glass-border bg-glass">
+<div class="flex items-center gap-2">
+<button class="p-2 text-slate-500 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-xl">mood</span>
+</button>
+<input class="flex-1 bg-white/5 border border-white/5 rounded-full px-5 py-3 text-sm focus:ring-1 focus:ring-primary/50 focus:border-primary/50 outline-none transition-all" id="chatInput" placeholder="輸入訊息..." type="text"/>
+<button class="size-9 bg-primary text-white rounded-xl flex items-center justify-center hover:opacity-90 transition-all shadow-lg shadow-primary/20 apple-pill" id="chatSendBtn">
+<span class="material-symbols-outlined text-lg">send</span>
+</button>
+</div>
+</div>
+</aside>
+</div>
+<!-- Footer Info -->
+<footer class="mt-16 pb-8 text-center text-white/30 text-[11px] tracking-wide">
+<p class="font-normal tracking-relaxed-plus uppercase">© 2024 Lily Queue • 專業級遊戲報名管理系統</p>
+</footer>
+</div>
+</body></html>
