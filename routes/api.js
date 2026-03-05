@@ -477,6 +477,14 @@ router.post('/admin/select', requireAdmin, (req, res) => {
             const icon = statusIcons[status] || '📢';
             const name = reg.display_name || reg.game_id;
 
+            // Emit targeted notification for browser push
+            req.app.io.emit('registration:statusChanged', {
+                gameId: reg.game_id,
+                status,
+                label,
+                icon
+            });
+
             // System chat announcement
             const sysMsg = {
                 gameId: 'SYSTEM',
@@ -487,6 +495,46 @@ router.post('/admin/select', requireAdmin, (req, res) => {
             };
             req.app.io.to('registered').emit('chat:message', sysMsg);
             req.app.io.to('admin').emit('chat:message', sysMsg);
+
+            // Auto-substitute: if someone loses 'selected', promote first waitlister
+            if (status !== 'selected') {
+                const prevReg = db.getOne('SELECT status FROM registrations WHERE id = ? AND session_id = ?', [registrationId, session.id]);
+                // Check if there's a waitlist user to promote
+                const firstWaitlist = db.getOne(
+                    'SELECT id, game_id, display_name FROM registrations WHERE session_id = ? AND status = ? ORDER BY registered_at ASC LIMIT 1',
+                    [session.id, 'waitlist']
+                );
+                if (firstWaitlist) {
+                    const selectedCount = regs.filter(r => r.status === 'selected').length;
+                    if (selectedCount < (session.main_slots || 0)) {
+                        db.updateRegistrationStatus(firstWaitlist.id, 'selected');
+                        const promoteName = firstWaitlist.display_name || firstWaitlist.game_id;
+
+                        // Notify promoted user
+                        req.app.io.emit('registration:statusChanged', {
+                            gameId: firstWaitlist.game_id,
+                            status: 'selected',
+                            label: '正選（自動遞補）',
+                            icon: '🎉'
+                        });
+
+                        // System chat announcement for promotion
+                        const promoMsg = {
+                            gameId: 'SYSTEM',
+                            displayName: '系統',
+                            message: `🔄 ${promoteName} 已自動從備取遞補為正選！`,
+                            isSystem: true,
+                            sentAt: db.taipeiNow()
+                        };
+                        req.app.io.to('registered').emit('chat:message', promoMsg);
+                        req.app.io.to('admin').emit('chat:message', promoMsg);
+
+                        // Refresh registrations for all
+                        const updatedRegs = db.getRegistrations(session.id);
+                        req.app.io.emit('registrations:updated', { registrations: updatedRegs });
+                    }
+                }
+            }
         }
 
         // Check if slots are full
@@ -1162,6 +1210,45 @@ router.get('/admin/qrcode', requireAdmin, async (req, res) => {
     } catch (e) {
         res.status(500).json({ error: 'QR Code 生成失敗：' + e.message });
     }
+});
+
+// ═══════════════════════════════════════════════════════════════════
+// PUBLIC SCHEDULE INFO (for countdown display)
+// ═══════════════════════════════════════════════════════════════════
+router.get('/schedule', (req, res) => {
+    res.json({
+        scheduledOpen: db.getSettingValue('scheduled_open', ''),
+        scheduledClose: db.getSettingValue('scheduled_close', ''),
+        scheduledOpenData: JSON.parse(db.getSettingValue('scheduled_open_data', '{}'))
+    });
+});
+
+// ═══════════════════════════════════════════════════════════════════
+// DRAG & DROP REORDER
+// ═══════════════════════════════════════════════════════════════════
+router.put('/admin/registrations/reorder', requireAdmin, (req, res) => {
+    const { orderedIds } = req.body;
+    if (!Array.isArray(orderedIds) || orderedIds.length === 0) {
+        return res.status(400).json({ error: '無效的排序資料' });
+    }
+
+    const session = db.getActiveSession();
+    if (!session) return res.status(400).json({ error: '沒有進行中的場次' });
+
+    orderedIds.forEach((id, index) => {
+        db.runSql('UPDATE registrations SET sort_order = ? WHERE id = ? AND session_id = ?', [index, id, session.id]);
+    });
+
+    logAudit('reorder', 'registrations', `手動調整 ${orderedIds.length} 筆報名順序`);
+
+    // Refresh for all
+    const io = req.app.io;
+    if (io) {
+        io.to('admin').emit('registrations:updated');
+        io.to('registered').emit('registrations:updated');
+    }
+
+    res.json({ message: `已更新 ${orderedIds.length} 筆排序` });
 });
 
 module.exports = router;

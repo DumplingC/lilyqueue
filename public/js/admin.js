@@ -413,9 +413,9 @@
                 ? `<span class="badge-suspicious" title="也使用過：${escapeHtml(suspiciousMap[reg.game_id])}">🔍 多重ID</span>`
                 : '';
             html += `
-        <tr data-id="${reg.id}">
+        <tr data-id="${reg.id}" draggable="true" class="draggable-row">
           <td><input type="checkbox" class="reg-checkbox" data-id="${reg.id}" style="accent-color:var(--accent-primary);"></td>
-          <td class="rank">${idx + 1}</td>
+          <td class="rank" style="cursor:grab;" title="拖拽排序">⠿ ${idx + 1}</td>
           <td class="game-id">${escapeHtml(reg.game_id)} ${lateTag} ${susTag}</td>
           <td>${escapeHtml(reg.display_name)}</td>
           <td class="timestamp">${formatTime(reg.registered_at)}</td>
@@ -2029,6 +2029,53 @@
     if (batchApproveBtn) batchApproveBtn.addEventListener('click', () => batchAction('approved'));
     if (batchRejectBtn) batchRejectBtn.addEventListener('click', () => batchAction('rejected'));
     if (batchDeleteBtn) batchDeleteBtn.addEventListener('click', () => batchAction('delete'));
+
+    // ═══════════════════════════════════════════════════════════════════
+    // DRAG & DROP REORDER
+    // ═══════════════════════════════════════════════════════════════════
+    let draggedRow = null;
+    document.addEventListener('dragstart', (e) => {
+        const row = e.target.closest('tr.draggable-row');
+        if (!row) return;
+        draggedRow = row;
+        row.style.opacity = '0.4';
+        e.dataTransfer.effectAllowed = 'move';
+    });
+    document.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        const row = e.target.closest('tr.draggable-row');
+        if (!row || row === draggedRow) return;
+        row.style.borderTop = '2px solid var(--accent-primary)';
+    });
+    document.addEventListener('dragleave', (e) => {
+        const row = e.target.closest('tr.draggable-row');
+        if (row) row.style.borderTop = '';
+    });
+    document.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        const targetRow = e.target.closest('tr.draggable-row');
+        if (!targetRow || !draggedRow || targetRow === draggedRow) return;
+        targetRow.style.borderTop = '';
+
+        const tbody = targetRow.closest('tbody');
+        if (!tbody) return;
+        tbody.insertBefore(draggedRow, targetRow);
+
+        // Collect new order
+        const orderedIds = [...tbody.querySelectorAll('tr.draggable-row')].map(r => parseInt(r.dataset.id));
+        try {
+            await api('/admin/registrations/reorder', { method: 'PUT', body: { orderedIds } });
+            showToast('排序已更新');
+            loadRegistrations();
+        } catch (e) { showToast(e.message, 'error'); }
+    });
+    document.addEventListener('dragend', () => {
+        if (draggedRow) {
+            draggedRow.style.opacity = '';
+            draggedRow = null;
+        }
+        document.querySelectorAll('tr.draggable-row').forEach(r => r.style.borderTop = '');
+    });
 
     // ═══════════════════════════════════════════════════════════════════
     // QR CODE

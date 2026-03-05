@@ -276,7 +276,45 @@
             closedCard.style.display = '';
             chatColumn.style.display = 'none';
             resultsCard.style.display = 'none';
+
+            // Check for scheduled open and show countdown
+            loadScheduleCountdown();
         }
+    }
+
+    // ─── Schedule Countdown ──────────────────────────────────────────
+    let scheduleCountdownInterval = null;
+    async function loadScheduleCountdown() {
+        try {
+            const data = await fetch('/api/schedule').then(r => r.json());
+            const container = $('#countdownContainer');
+            const timerEl = $('#countdownTimer');
+            if (!container || !timerEl) return;
+
+            if (data.scheduledOpen) {
+                const targetTime = new Date(data.scheduledOpen).getTime();
+                container.style.display = '';
+
+                if (scheduleCountdownInterval) clearInterval(scheduleCountdownInterval);
+                scheduleCountdownInterval = setInterval(() => {
+                    const now = Date.now();
+                    const diff = targetTime - now;
+                    if (diff <= 0) {
+                        clearInterval(countdownInterval);
+                        timerEl.textContent = '即將開放！';
+                        setTimeout(() => loadStatus(), 3000); // Reload after 3s
+                        return;
+                    }
+                    const h = Math.floor(diff / 3600000);
+                    const m = Math.floor((diff % 3600000) / 60000);
+                    const s = Math.floor((diff % 60000) / 1000);
+                    timerEl.textContent = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+                }, 1000);
+            } else {
+                container.style.display = 'none';
+                if (scheduleCountdownInterval) clearInterval(scheduleCountdownInterval);
+            }
+        } catch (e) { /* ignore */ }
     }
 
     // ─── Update my status display ─────────────────────────────────────
@@ -849,6 +887,18 @@
         console.log('[SOCKET] registrations:updated received, registered=', state.registered);
         if (state.registered) checkMyStatus();
         loadStatus();
+    });
+
+    // Browser push notification when user's registration status changes
+    socket.on('registration:statusChanged', (data) => {
+        if (state.registered && data.gameId === state.gameId) {
+            const title = '莉刻報名系統';
+            const body = `${data.icon} 你已被設為 ${data.label}`;
+            sendBrowserNotif(title, body);
+            if (document.hidden) {
+                playNotifSound();
+            }
+        }
     });
 
     socket.on('results:published', () => {
