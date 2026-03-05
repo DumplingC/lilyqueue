@@ -1090,6 +1090,12 @@ router.put('/admin/ui-style', requireAdmin, (req, res) => {
     const style = req.body.style === 'pro' ? 'pro' : 'emoji';
     db.setSettingValue('ui_style', style);
     logAudit('setting', 'ui_style', `UI 風格切換為 ${style}`);
+
+    // Broadcast to all connected clients
+    if (req.app.io) {
+        req.app.io.emit('style:updated', { style });
+    }
+
     res.json({ message: '已切換', style });
 });
 

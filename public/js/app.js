@@ -1160,6 +1160,11 @@
     // Listen for real-time theme changes
     socket.on('theme:updated', applyTheme);
 
+    // Listen for real-time UI style changes (pro vs emoji)
+    socket.on('style:updated', (data) => {
+        document.body.setAttribute('data-ui-style', data.style || 'pro');
+    });
+
     // ─── Countdown Timer ────────────────────────────────────────────────
     let countdownInterval = null;
 
