@@ -866,6 +866,167 @@ select.form-input option {
   }
 }
 
+/* ─── Micro Animations ─────────────────────────────────────────── */
+
+/* Card fade-in-up on appear */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card {
+  animation: fadeInUp 0.35s ease-out both;
+}
+
+.card+.card {
+  animation-delay: 0.08s;
+}
+
+/* Button press feedback */
+.btn:active {
+  transform: scale(0.97) !important;
+  transition: transform 0.08s ease;
+}
+
+/* Progress bar shimmer */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.progress-fill {
+  background-image: linear-gradient(90deg,
+      var(--accent-primary) 0%,
+      var(--accent-primary-light) 40%,
+      rgba(255, 255, 255, 0.15) 50%,
+      var(--accent-primary-light) 60%,
+      var(--accent-primary) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+/* Number pop on change */
+@keyframes numberPop {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.15);
+    color: var(--accent-primary-light);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+.number-pop {
+  animation: numberPop 0.3s ease;
+}
+
+/* Status dot glow */
+.status-dot.online {
+  animation: dotGlow 2s ease-in-out infinite;
+}
+
+@keyframes dotGlow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 4px rgba(34, 197, 94, 0.4);
+  }
+
+  50% {
+    box-shadow: 0 0 12px rgba(34, 197, 94, 0.8), 0 0 20px rgba(34, 197, 94, 0.3);
+  }
+}
+
+/* Toast slide-in */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+.toast {
+  animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.toast.toast-exit {
+  animation: slideOutRight 0.25s ease-in both;
+}
+
+/* Badge bounce */
+@keyframes badgeBounce {
+  0% {
+    transform: scale(1);
+  }
+
+  30% {
+    transform: scale(1.2);
+  }
+
+  60% {
+    transform: scale(0.95);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+.badge-animate {
+  animation: badgeBounce 0.4s ease;
+}
+
+/* Smooth show/hide for cards */
+.status-result-card {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* Accessibility: disable all animations if user prefers */
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 .status-text {
   font-size: 0.85rem;
   font-weight: 500;
