@@ -213,6 +213,11 @@
                 hideBgPreview();
             }
         });
+
+        // Chat error listener (must be inside initSocket where socket is defined)
+        socket.on('chat:error', (data) => {
+            showToast(data.error, 'error');
+        });
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -884,10 +889,6 @@
         document.body.appendChild(overlay);
     };
 
-    // Chat error listener
-    socket.on('chat:error', (data) => {
-        showToast(data.error, 'error');
-    });
 
     // Clear chat
     $('#clearChatBtn').addEventListener('click', async () => {
