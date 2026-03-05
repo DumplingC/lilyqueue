@@ -418,8 +418,12 @@ function closeDatabase() {
 module.exports = {
   initialize,
   taipeiNow,
+  getOne,
+  getAll,
   runSql,
   querySql,
+  save,
+  getLastInsertRowId,
   getSettingValue,
   setSettingValue,
   isAdminPasswordSet,
