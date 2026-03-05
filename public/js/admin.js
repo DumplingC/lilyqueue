@@ -1793,6 +1793,84 @@
         } catch (e) { showToast(e.message, 'error'); }
     });
 
+    // ═══════════════════════════════════════════════════════════════════
+    // PUSH-TO-TALK VOICE BROADCAST
+    // ═══════════════════════════════════════════════════════════════════
+    const pttBtn = $('#pttBtn');
+    const pttIndicator = $('#pttIndicator');
+    let mediaStream = null;
+    let mediaRecorder = null;
+    let isRecording = false;
+
+    async function startPTT() {
+        if (isRecording) return;
+
+        // Request mic permission on first use
+        if (!mediaStream) {
+            try {
+                mediaStream = await navigator.mediaDevices.getUserMedia({
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        sampleRate: 16000
+                    }
+                });
+            } catch (e) {
+                showToast('🎙️ 無法存取麥克風，請允許權限', 'error');
+                return;
+            }
+        }
+
+        isRecording = true;
+        pttBtn.style.background = 'var(--accent-danger)';
+        pttBtn.style.color = 'white';
+        pttBtn.style.borderColor = 'var(--accent-danger)';
+        if (pttIndicator) pttIndicator.style.display = '';
+
+        socket.emit('voice:start');
+
+        mediaRecorder = new MediaRecorder(mediaStream, {
+            mimeType: MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+                ? 'audio/webm;codecs=opus'
+                : 'audio/webm'
+        });
+
+        mediaRecorder.ondataavailable = (e) => {
+            if (e.data.size > 0) {
+                socket.emit('voice:data', e.data);
+            }
+        };
+
+        mediaRecorder.start(200); // Send chunks every 200ms
+    }
+
+    function stopPTT() {
+        if (!isRecording) return;
+        isRecording = false;
+
+        pttBtn.style.background = '';
+        pttBtn.style.color = '';
+        pttBtn.style.borderColor = 'var(--accent-primary)';
+        if (pttIndicator) pttIndicator.style.display = 'none';
+
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+        }
+        socket.emit('voice:stop');
+    }
+
+    if (pttBtn) {
+        // Mouse events
+        pttBtn.addEventListener('mousedown', (e) => { e.preventDefault(); startPTT(); });
+        pttBtn.addEventListener('mouseup', stopPTT);
+        pttBtn.addEventListener('mouseleave', stopPTT);
+
+        // Touch events (mobile)
+        pttBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startPTT(); });
+        pttBtn.addEventListener('touchend', stopPTT);
+        pttBtn.addEventListener('touchcancel', stopPTT);
+    }
+
     // ─── Init ─────────────────────────────────────────────────────────
     checkAuth();
     loadTheme();
@@ -1804,6 +1882,16 @@
     loadRules();
     loadUiStyle();
 
+    // Prefill session title with today's date + default time
+    const newTitleInput = $('#newTitle');
+    if (newTitleInput && !newTitleInput.value) {
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const d = String(now.getDate()).padStart(2, '0');
+        newTitleInput.value = `${y}/${m}/${d} 下午 14:00 `;
+    }
+
     // ═══════════════════════════════════════════════════════════════════
     // UI STYLE TOGGLE
     // ═══════════════════════════════════════════════════════════════════
@@ -1811,8 +1899,8 @@
     async function loadUiStyle() {
         try {
             const data = await api('/admin/ui-style');
-            if (uiStyleSelect) uiStyleSelect.value = data.style || 'emoji';
-            document.body.setAttribute('data-ui-style', data.style || 'emoji');
+            if (uiStyleSelect) uiStyleSelect.value = data.style || 'pro';
+            document.body.setAttribute('data-ui-style', data.style || 'pro');
         } catch (e) { /* ignore */ }
     }
     if (uiStyleSelect) {

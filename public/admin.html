@@ -237,28 +237,6 @@
                         <button class="btn btn-outline btn-block" id="loadAuditLogBtn" style="margin-top:6px;">📜
                             載入日誌</button>
                     </div>
-
-                    <!-- Announcement -->
-                    <div class="card" style="margin-top: 16px;">
-                        <div class="card-header">
-                            <span class="icon">📢</span>
-                            <h2>發送公告</h2>
-                        </div>
-                        <div class="form-group">
-                            <input type="text" id="announceInput" class="form-input" placeholder="輸入公告內容..."
-                                maxlength="200">
-                        </div>
-                        <button class="btn btn-primary btn-block" id="announceBtn">📢 發送公告</button>
-                        <div class="announce-templates" style="margin-top: 10px;">
-                            <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px;">快速樣板：</p>
-                            <div class="btn-group" style="flex-wrap: wrap;">
-                                <button class="btn btn-xs btn-outline announce-tpl">🎮 正在進行遊戲中</button>
-                                <button class="btn btn-xs btn-outline announce-tpl">⏳ 請稍等，前一場尚未結束</button>
-                                <button class="btn btn-xs btn-outline announce-tpl">✅ 輪到下一組了！</button>
-                                <button class="btn btn-xs btn-outline announce-tpl">🔔 請準備上線</button>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -291,31 +269,69 @@
 
         <!-- Tab: Chat -->
         <div class="tab-content" id="tab-chat">
-            <div class="card">
-                <div class="card-header">
-                    <span class="icon">💬</span>
-                    <h2>聊天室</h2>
-                    <button class="btn btn-xs btn-danger" id="clearChatBtn" style="margin-left: auto;">🗑️ 清除對話</button>
-                </div>
-                <div style="padding: 8px 10px; border-bottom: 1px solid var(--border-color);">
-                    <div style="display:flex;gap:6px;align-items:center;">
-                        <label style="font-size:0.75rem;color:var(--text-muted);white-space:nowrap;">顯示名稱</label>
-                        <input type="text" class="form-input" id="adminDisplayName" placeholder="🎮 主辦人" maxlength="30"
-                            style="padding:4px 8px;font-size:0.8rem;flex:1;">
+            <div style="display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap;">
+                <!-- Chat Panel (Left) -->
+                <div class="card" style="flex:1; min-width:300px; max-width:520px;">
+                    <div class="card-header">
+                        <span class="icon">💬</span>
+                        <h2>聊天室</h2>
+                        <button class="btn btn-xs btn-danger" id="clearChatBtn" style="margin-left: auto;">🗑️
+                            清除對話</button>
+                    </div>
+                    <div style="padding: 6px 10px; border-bottom: 1px solid var(--border-color);">
+                        <div style="display:flex;gap:6px;align-items:center;">
+                            <label style="font-size:0.72rem;color:var(--text-muted);white-space:nowrap;">顯示名稱</label>
+                            <input type="text" class="form-input" id="adminDisplayName" placeholder="🎮 主辦人"
+                                maxlength="30" style="padding:3px 8px;font-size:0.78rem;flex:1;">
+                        </div>
+                    </div>
+                    <div class="chat-messages" id="adminChatMessages" style="height: 320px;">
+                        <div class="empty-state" id="adminChatEmpty">
+                            <p style="font-size: 0.8rem;">還沒有訊息</p>
+                        </div>
+                    </div>
+                    <div class="emoji-picker" id="adminEmojiPicker" style="max-height:120px;"></div>
+                    <div class="chat-input-row">
+                        <button class="btn btn-ghost emoji-toggle" id="adminEmojiBtn" type="button"
+                            title="表情">😊</button>
+                        <input type="text" class="form-input" id="adminChatInput" placeholder="以主辦人身份發送訊息..."
+                            maxlength="500" autocomplete="off">
+                        <button class="btn btn-primary" id="adminChatSendBtn">發送</button>
+                        <button class="btn btn-outline" id="pttBtn" title="按住說話（語音廣播）"
+                            style="padding:6px 10px; font-size:1rem; border-color:var(--accent-primary); position:relative;">
+                            🎙️
+                            <span id="pttIndicator"
+                                style="display:none; position:absolute; top:-3px; right:-3px; width:8px; height:8px; background:#f44336; border-radius:50%; animation:pulse 0.8s infinite;"></span>
+                        </button>
                     </div>
                 </div>
-                <div class="chat-messages" id="adminChatMessages" style="height: 350px;">
-                    <div class="empty-state" id="adminChatEmpty">
-                        <p style="font-size: 0.8rem;">還沒有訊息</p>
+
+                <!-- Announcement Panel (Right) -->
+                <div class="card" style="flex:0 0 260px; min-width:240px;">
+                    <div class="card-header">
+                        <span class="icon">📢</span>
+                        <h2>發送公告</h2>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" id="announceInput" class="form-input" placeholder="輸入公告內容..." maxlength="200"
+                            style="font-size:0.8rem;">
+                    </div>
+                    <button class="btn btn-primary btn-block" id="announceBtn" style="font-size:0.8rem;">📢
+                        發送公告</button>
+                    <div class="announce-templates" style="margin-top: 10px;">
+                        <p style="font-size: 0.7rem; color: var(--text-muted); margin-bottom: 6px;">快速樣板：</p>
+                        <div style="display:flex; flex-direction:column; gap:4px;">
+                            <button class="btn btn-xs btn-outline announce-tpl"
+                                style="text-align:left; font-size:0.7rem;">🎮 正在進行遊戲中</button>
+                            <button class="btn btn-xs btn-outline announce-tpl"
+                                style="text-align:left; font-size:0.7rem;">⏳ 請稍等，前一場尚未結束</button>
+                            <button class="btn btn-xs btn-outline announce-tpl"
+                                style="text-align:left; font-size:0.7rem;">✅ 輪到下一組了！</button>
+                            <button class="btn btn-xs btn-outline announce-tpl"
+                                style="text-align:left; font-size:0.7rem;">🔔 請準備上線</button>
+                        </div>
                     </div>
                 </div>
-                <div class="chat-input-row">
-                    <button class="btn btn-ghost emoji-toggle" id="adminEmojiBtn" type="button" title="表情">😊</button>
-                    <input type="text" class="form-input" id="adminChatInput" placeholder="以主辦人身份發送訊息..."
-                        maxlength="500" autocomplete="off">
-                    <button class="btn btn-primary" id="adminChatSendBtn">發送</button>
-                </div>
-                <div class="emoji-picker" id="adminEmojiPicker"></div>
             </div>
         </div>
 

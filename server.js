@@ -26,7 +26,7 @@ app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", "'unsafe-inline'"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com"],
             styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
             fontSrc: ["'self'", "https://fonts.gstatic.com"],
             imgSrc: ["'self'", "data:", "blob:"],
@@ -168,6 +168,23 @@ io.on('connection', (socket) => {
                 isTyping: !!isTyping
             });
         }
+    });
+
+    // ─── Voice Broadcast (Admin → Users) ──────────────────────────
+    socket.on('voice:start', () => {
+        if (!socket.isAdmin) return;
+        io.to('registered').emit('voice:start');
+    });
+
+    socket.on('voice:data', (audioData) => {
+        if (!socket.isAdmin) return;
+        // Relay binary audio data to all registered users
+        io.to('registered').emit('voice:data', audioData);
+    });
+
+    socket.on('voice:stop', () => {
+        if (!socket.isAdmin) return;
+        io.to('registered').emit('voice:stop');
     });
 
     // Admin join

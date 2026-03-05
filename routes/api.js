@@ -1001,7 +1001,7 @@ tr:nth-child(even) { background: #f8f9fa; }
 
 // ─── UI Style Toggle ──────────────────────────────────────────────
 router.get('/admin/ui-style', requireAdmin, (req, res) => {
-    res.json({ style: db.getSettingValue('ui_style', 'emoji') });
+    res.json({ style: db.getSettingValue('ui_style', 'pro') });
 });
 
 router.put('/admin/ui-style', requireAdmin, (req, res) => {
@@ -1013,7 +1013,7 @@ router.put('/admin/ui-style', requireAdmin, (req, res) => {
 
 // Public UI style (for user page)
 router.get('/ui-style', (req, res) => {
-    res.json({ style: db.getSettingValue('ui_style', 'emoji') });
+    res.json({ style: db.getSettingValue('ui_style', 'pro') });
 });
 
 // ─── CAPTCHA Toggle ───────────────────────────────────────────────

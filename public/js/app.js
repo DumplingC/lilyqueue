@@ -906,6 +906,52 @@
         loadStatus();
     });
 
+    // ─── Voice Broadcast Playback ────────────────────────────────────
+    let voiceAudioChunks = [];
+    let voicePlaying = false;
+    const voiceBanner = document.createElement('div');
+    voiceBanner.id = 'voiceBroadcastBanner';
+    voiceBanner.style.cssText = 'display:none; position:fixed; top:60px; left:50%; transform:translateX(-50%); background:var(--accent-danger); color:white; padding:6px 16px; border-radius:20px; font-size:0.78rem; font-weight:600; z-index:9999; box-shadow:0 4px 12px rgba(0,0,0,0.3); animation:pulse 1s infinite;';
+    voiceBanner.textContent = '🎙️ 主辦人語音廣播中...';
+    document.body.appendChild(voiceBanner);
+
+    socket.on('voice:start', () => {
+        voiceAudioChunks = [];
+        voicePlaying = true;
+        voiceBanner.style.display = '';
+    });
+
+    socket.on('voice:data', (audioData) => {
+        if (!voicePlaying) return;
+        voiceAudioChunks.push(audioData);
+    });
+
+    socket.on('voice:stop', () => {
+        voicePlaying = false;
+        voiceBanner.style.display = 'none';
+
+        if (voiceAudioChunks.length === 0) return;
+
+        // Play collected audio
+        try {
+            const blob = new Blob(voiceAudioChunks, { type: 'audio/webm;codecs=opus' });
+            const url = URL.createObjectURL(blob);
+            const audio = new Audio(url);
+            audio.play().catch(() => {
+                // iOS autoplay restriction — show toast
+                showToast('🎙️ 主辦人發送了語音訊息，點擊頁面以播放', 'info');
+                const playOnClick = () => {
+                    audio.play().catch(() => { });
+                    document.removeEventListener('click', playOnClick);
+                };
+                document.addEventListener('click', playOnClick, { once: true });
+            });
+            audio.onended = () => URL.revokeObjectURL(url);
+        } catch (e) { /* ignore */ }
+
+        voiceAudioChunks = [];
+    });
+
     socket.on('admin:private-message', (data) => {
         // Show in chat as a private whisper message
         if (chatEmpty) chatEmpty.style.display = 'none';
@@ -1132,7 +1178,7 @@
         try {
             const res = await fetch('/api/ui-style');
             const data = await res.json();
-            document.body.setAttribute('data-ui-style', data.style || 'emoji');
+            document.body.setAttribute('data-ui-style', data.style || 'pro');
             if (data.style === 'pro' && typeof lucide !== 'undefined') {
                 lucide.createIcons();
             }
