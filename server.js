@@ -255,6 +255,66 @@ io.on('connection', (socket) => {
         io.to('admin').emit('chat:message', chatMsg);
     });
 
+    // ─── Chat Image ──────────────────────────────────────────────────
+    const imageRateLimit = new Map(); // socketId -> [timestamps]
+    socket.on('chat:image', (data) => {
+        if (!data || !data.imageData) return;
+
+        const session = db.getActiveSession();
+        if (!session) return;
+
+        // Size check: max 150KB base64
+        if (data.imageData.length > 200000) {
+            socket.emit('chat:error', { error: '圖片太大，請壓縮後再試' });
+            return;
+        }
+
+        // Rate limit: 3 images per minute
+        const now = Date.now();
+        const userImages = imageRateLimit.get(socket.id) || [];
+        const recentImages = userImages.filter(t => now - t < 60000);
+        if (recentImages.length >= 3) {
+            socket.emit('chat:error', { error: '圖片傳送過於頻繁，請稍後再試' });
+            return;
+        }
+        recentImages.push(now);
+        imageRateLimit.set(socket.id, recentImages);
+
+        let gameId, displayName, isAdmin;
+        if (socket.isAdmin) {
+            gameId = 'ADMIN';
+            displayName = socket.adminDisplayName || '🎮 主辦人';
+            isAdmin = true;
+        } else if (socket.gameId) {
+            const reg = db.getRegistrationByGameId(session.id, socket.gameId);
+            if (!reg) return;
+            gameId = socket.gameId;
+            displayName = socket.displayName || socket.gameId;
+            isAdmin = false;
+            var regStatus = reg.status || 'pending';
+        } else {
+            return;
+        }
+
+        // Store with [IMAGE] prefix so we can identify on reload
+        const msgText = '[IMAGE]' + data.imageData;
+        const msgId = db.addChatMessage(session.id, gameId, displayName, msgText, isAdmin);
+
+        const chatMsg = {
+            id: msgId,
+            gameId,
+            displayName,
+            message: msgText,
+            imageData: data.imageData,
+            isAdmin,
+            regStatus: regStatus || null,
+            sentAt: db.taipeiNow()
+        };
+
+        io.to('registered').emit('chat:message', chatMsg);
+        io.to('admin').emit('chat:message', chatMsg);
+    });
+
     socket.on('disconnect', () => {
         connectedClients = Math.max(0, connectedClients - 1);
         io.emit('clients:count', connectedClients);

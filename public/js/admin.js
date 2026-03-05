@@ -802,12 +802,19 @@
             const statusTag = msg.regStatus && !msg.isAdmin
                 ? ` <span class="online-reg-tag ${msg.regStatus === 'selected' ? 'reg-selected' : msg.regStatus === 'rejected' ? 'reg-rejected' : ''}">${regLabels[msg.regStatus] || '審核中'}</span>`
                 : '';
+
+            // Check for image message
+            const imgData = msg.imageData || (msg.message && msg.message.startsWith('[IMAGE]') ? msg.message.substring(7) : null);
+            const contentHtml = imgData
+                ? `<div class="chat-image-wrap"><img src="${imgData}" class="chat-image" alt="圖片" loading="lazy" onclick="openImageLightbox(this.src)"></div>`
+                : `<div class="chat-text">${escapeHtml(msg.message)}</div>`;
+
             div.innerHTML = `
           <div class="chat-meta">
             <span class="chat-name">${escapeHtml(msg.displayName)}${statusTag}</span>
             <span class="chat-time">${formatTime(msg.sentAt)}</span>
           </div>
-          <div class="chat-text">${escapeHtml(msg.message)}</div>
+          ${contentHtml}
         `;
         }
         adminChatMessages.appendChild(div);
@@ -824,6 +831,62 @@
     $('#adminChatSendBtn').addEventListener('click', sendAdminChat);
     adminChatInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') sendAdminChat();
+    });
+
+    // ─── Admin Image Upload ──────────────────────────────────────────
+    function compressAndSendImage(file) {
+        const maxDim = 800;
+        const quality = 0.8;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let w = img.width, h = img.height;
+                if (w > maxDim || h > maxDim) {
+                    if (w > h) { h = Math.round(h * maxDim / w); w = maxDim; }
+                    else { w = Math.round(w * maxDim / h); h = maxDim; }
+                }
+                canvas.width = w;
+                canvas.height = h;
+                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                const dataUrl = canvas.toDataURL('image/jpeg', quality);
+                if (dataUrl.length > 200000) {
+                    showToast('圖片太大，請選擇較小的圖片', 'error');
+                    return;
+                }
+                socket.emit('chat:image', { imageData: dataUrl });
+                showToast('圖片已傳送');
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    const adminChatImageBtn = $('#adminChatImageBtn');
+    const adminChatImageInput = $('#adminChatImageInput');
+    if (adminChatImageBtn && adminChatImageInput) {
+        adminChatImageBtn.addEventListener('click', () => adminChatImageInput.click());
+        adminChatImageInput.addEventListener('change', (e) => {
+            if (e.target.files[0]) {
+                compressAndSendImage(e.target.files[0]);
+                e.target.value = '';
+            }
+        });
+    }
+
+    // Image lightbox
+    window.openImageLightbox = function (src) {
+        const overlay = document.createElement('div');
+        overlay.className = 'image-lightbox';
+        overlay.innerHTML = `<img src="${src}" alt="">`;
+        overlay.addEventListener('click', () => overlay.remove());
+        document.body.appendChild(overlay);
+    };
+
+    // Chat error listener
+    socket.on('chat:error', (data) => {
+        showToast(data.error, 'error');
     });
 
     // Clear chat
