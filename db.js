@@ -149,9 +149,21 @@ async function initialize() {
     created_at TEXT DEFAULT (datetime('now', 'localtime'))
   )`);
 
+  // Admin sessions table for session management
+  db.run(`CREATE TABLE IF NOT EXISTS admin_sessions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    token TEXT UNIQUE NOT NULL,
+    ip_address TEXT,
+    user_agent TEXT,
+    created_at TEXT DEFAULT (datetime('now', 'localtime')),
+    last_active TEXT DEFAULT (datetime('now', 'localtime')),
+    revoked INTEGER DEFAULT 0
+  )`);
+
   // Auto-cleanup: delete sessions older than 30 days
   try {
     db.run(`DELETE FROM sessions WHERE created_at < datetime('now', '-30 days', 'localtime')`);
+    db.run(`DELETE FROM admin_sessions WHERE created_at < datetime('now', '-30 days', 'localtime')`);
   } catch (e) { /* ignore */ }
 
   save();

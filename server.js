@@ -38,20 +38,27 @@ app.use(helmet({
 // Rate limiting
 const generalLimiter = rateLimit({
     windowMs: 1 * 60 * 1000, // 1 minute
-    max: 60,
+    max: 100,
+    standardHeaders: true,
+    legacyHeaders: false,
     message: { error: '請求過於頻繁，請稍後再試' }
 });
 
 const registerLimiter = rateLimit({
     windowMs: 1 * 60 * 1000,
     max: 5,
+    standardHeaders: true,
+    legacyHeaders: false,
     message: { error: '報名請求過於頻繁，請稍後再試' }
 });
 
 const loginLimiter = rateLimit({
-    windowMs: 5 * 60 * 1000,
-    max: 10,
-    message: { error: '登入嘗試過於頻繁，請 5 分鐘後再試' }
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 5, // Only 5 attempts per 15 min
+    standardHeaders: true,
+    legacyHeaders: false,
+    skipSuccessfulRequests: true, // Only count failed logins
+    message: { error: '登入嘗試過於頻繁，請 15 分鐘後再試' }
 });
 
 app.use('/api/', generalLimiter);

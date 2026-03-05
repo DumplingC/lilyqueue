@@ -37,11 +37,28 @@ const upload = multer({
 // ─── Auth middleware ───────────────────────────────────────────────
 function requireAdmin(req, res, next) {
     const token = req.headers['x-admin-token'] || req.query.token;
-    const validToken = db.getSettingValue('admin_session_token');
-    if (!token || token !== validToken) {
+    if (!token) {
         return res.status(401).json({ error: '需要管理員權限' });
     }
-    next();
+
+    // Check admin_sessions table (multi-session support)
+    const session = db.getOne(
+        'SELECT id FROM admin_sessions WHERE token = ? AND revoked = 0',
+        [token]
+    );
+    if (session) {
+        // Update last_active timestamp
+        db.runSql('UPDATE admin_sessions SET last_active = ? WHERE id = ?', [db.taipeiNow(), session.id]);
+        return next();
+    }
+
+    // Fallback: check old single-token setting for backward compatibility
+    const validToken = db.getSettingValue('admin_session_token');
+    if (token === validToken) {
+        return next();
+    }
+
+    return res.status(401).json({ error: '登入已過期，請重新登入' });
 }
 
 // ─── Input sanitization ──────────────────────────────────────────
@@ -85,7 +102,18 @@ router.post('/auth/login', (req, res) => {
     // Generate a session token
     const crypto = require('crypto');
     const token = crypto.randomBytes(32).toString('hex');
+
+    // Store in admin_sessions table with metadata
+    const clientIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || 'unknown';
+    const userAgent = (req.headers['user-agent'] || 'unknown').substring(0, 255);
+    db.runSql(
+        'INSERT INTO admin_sessions (token, ip_address, user_agent, created_at, last_active) VALUES (?, ?, ?, ?, ?)',
+        [token, clientIp, userAgent, db.taipeiNow(), db.taipeiNow()]
+    );
+
+    // Also keep backward compatibility
     db.setSettingValue('admin_session_token', token);
+    logAudit('auth', 'login', `管理員登入 (IP: ${clientIp})`);
 
     res.json({ token, message: '登入成功' });
 });
@@ -1250,5 +1278,68 @@ router.put('/admin/registrations/reorder', requireAdmin, (req, res) => {
 
     res.json({ message: `已更新 ${orderedIds.length} 筆排序` });
 });
+
+// ═══════════════════════════════════════════════════════════════════
+// SESSION MANAGEMENT
+// ═══════════════════════════════════════════════════════════════════
+
+// List all active admin sessions
+router.get('/admin/sessions', requireAdmin, (req, res) => {
+    const currentToken = req.headers['x-admin-token'] || req.query.token;
+    const sessions = db.getAll(
+        'SELECT id, ip_address, user_agent, created_at, last_active FROM admin_sessions WHERE revoked = 0 ORDER BY last_active DESC'
+    );
+    // Mark which is the current session
+    const result = sessions.map(s => ({
+        ...s,
+        isCurrent: db.getOne('SELECT token FROM admin_sessions WHERE id = ?', [s.id])?.token === currentToken,
+        // Parse user agent to friendly name
+        device: parseUserAgent(s.user_agent)
+    }));
+    res.json(result);
+});
+
+// Revoke a specific session
+router.delete('/admin/sessions/:id', requireAdmin, (req, res) => {
+    const sessionId = parseInt(req.params.id);
+    const currentToken = req.headers['x-admin-token'] || req.query.token;
+    const target = db.getOne('SELECT token FROM admin_sessions WHERE id = ?', [sessionId]);
+
+    if (target && target.token === currentToken) {
+        return res.status(400).json({ error: '無法撤銷目前使用中的 session' });
+    }
+
+    db.runSql('UPDATE admin_sessions SET revoked = 1 WHERE id = ?', [sessionId]);
+    logAudit('auth', 'revoke_session', `撤銷 session #${sessionId}`);
+    res.json({ message: '已撤銷該 session' });
+});
+
+// Revoke all sessions except current
+router.delete('/admin/sessions', requireAdmin, (req, res) => {
+    const currentToken = req.headers['x-admin-token'] || req.query.token;
+    db.runSql('UPDATE admin_sessions SET revoked = 1 WHERE token != ? AND revoked = 0', [currentToken]);
+    logAudit('auth', 'revoke_all', '撤銷所有其他 session');
+    res.json({ message: '已撤銷所有其他 session' });
+});
+
+// Helper: parse user agent to friendly device name
+function parseUserAgent(ua) {
+    if (!ua) return '不明裝置';
+    let device = '';
+    if (/Mobile|Android|iPhone|iPad/i.test(ua)) device = '📱 手機';
+    else if (/Windows/i.test(ua)) device = '💻 Windows';
+    else if (/Mac/i.test(ua)) device = '🍎 Mac';
+    else if (/Linux/i.test(ua)) device = '🐧 Linux';
+    else device = '🖥️ 其他';
+
+    let browser = '';
+    if (/Chrome/i.test(ua) && !/Edge/i.test(ua)) browser = 'Chrome';
+    else if (/Firefox/i.test(ua)) browser = 'Firefox';
+    else if (/Safari/i.test(ua) && !/Chrome/i.test(ua)) browser = 'Safari';
+    else if (/Edge/i.test(ua)) browser = 'Edge';
+    else browser = '';
+
+    return `${device}${browser ? ' ' + browser : ''}`;
+}
 
 module.exports = router;

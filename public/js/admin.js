@@ -2096,4 +2096,59 @@
         });
     }
 
+    // ═══════════════════════════════════════════════════════════════════
+    // SESSION MANAGEMENT
+    // ═══════════════════════════════════════════════════════════════════
+    async function loadSessions() {
+        try {
+            const sessions = await api('/admin/sessions');
+            const container = $('#sessionsList');
+            if (!container) return;
+            if (sessions.length === 0) {
+                container.innerHTML = '<p style="font-size:0.78rem; color:var(--text-muted); text-align:center;">沒有活躍的 session</p>';
+                return;
+            }
+            container.innerHTML = sessions.map(s => `
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 10px; border-bottom:1px solid var(--border-color-light); font-size:0.78rem;">
+                    <div style="flex:1; min-width:0;">
+                        <div style="font-weight:600; margin-bottom:2px;">
+                            ${s.device} ${s.isCurrent ? '<span style="color:var(--accent-success); font-size:0.7rem;">(目前)</span>' : ''}
+                        </div>
+                        <div style="color:var(--text-muted); font-size:0.7rem;">
+                            IP: ${s.ip_address || '不明'} · 登入: ${s.created_at || ''}
+                        </div>
+                        <div style="color:var(--text-muted); font-size:0.7rem;">
+                            最後活動: ${s.last_active || ''}
+                        </div>
+                    </div>
+                    <button class="btn btn-xs btn-outline" onclick="revokeSession(${s.id})" ${s.isCurrent ? 'disabled title="目前使用中"' : ''}>
+                        ${s.isCurrent ? '使用中' : '撤銷'}
+                    </button>
+                </div>
+            `).join('');
+        } catch (e) { /* ignore */ }
+    }
+
+    window.revokeSession = async function (id) {
+        if (!confirm('確定要撤銷這個 session 嗎？該裝置將需要重新登入。')) return;
+        try {
+            await api('/admin/sessions/' + id, { method: 'DELETE' });
+            showToast('已撤銷 session');
+            loadSessions();
+        } catch (e) { showToast(e.message, 'error'); }
+    };
+
+    const revokeAllBtn = $('#revokeAllSessionsBtn');
+    if (revokeAllBtn) {
+        revokeAllBtn.addEventListener('click', async () => {
+            if (!confirm('確定要撤銷所有其他 session 嗎？其他裝置都需要重新登入。')) return;
+            try {
+                await api('/admin/sessions', { method: 'DELETE' });
+                showToast('已撤銷所有其他 session');
+                loadSessions();
+            } catch (e) { showToast(e.message, 'error'); }
+        });
+    }
+    loadSessions();
+
 })();
