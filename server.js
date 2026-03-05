@@ -299,11 +299,8 @@ async function start() {
     await db.initialize();
     console.log('✅ 資料庫已載入');
 
-    // Force default UI style to 'pro' (v2 migration)
-    if (db.getSettingValue('ui_style_migrated') !== 'v2') {
-        db.setSettingValue('ui_style', 'pro');
-        db.setSettingValue('ui_style_migrated', 'v2');
-    }
+    // Always ensure default UI style is 'pro'
+    db.setSettingValue('ui_style', 'pro');
 
     server.listen(PORT, '0.0.0.0', () => {
         const localIP = getLocalIP();
