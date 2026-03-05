@@ -91,7 +91,6 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-top: 6px;
 }
 
 .lang-select {
@@ -209,27 +208,40 @@ body.has-bg-image>* {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  gap: 0;
 }
 
 /* ─── Compact Header ─────────────────────────────────────────────── */
 .app-header {
-  text-align: center;
-  padding: 16px 8px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.app-header .header-brand {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .app-header h1 {
-  font-size: var(--font-size-title);
+  font-size: 1.3rem;
   font-weight: 800;
   background: var(--gradient-primary);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  margin-bottom: 2px;
+  margin-bottom: 0;
+  white-space: nowrap;
 }
 
 .app-header .subtitle {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: var(--text-secondary);
+  margin-top: 1px;
 }
 
 /* ─── Status Strip ───────────────────────────────────────────────── */
@@ -237,13 +249,13 @@ body.has-bg-image>* {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 14px;
+  padding: 6px 14px;
   background: var(--bg-card);
   border-radius: var(--radius-md) var(--radius-md) 0 0;
   border: 1px solid var(--border-color);
   border-bottom: none;
-  font-size: 0.82rem;
-  margin-top: 8px;
+  font-size: 0.78rem;
+  margin-top: 4px;
 }
 
 .status-left {
@@ -254,12 +266,13 @@ body.has-bg-image>* {
 
 .status-right {
   color: var(--text-secondary);
-  font-size: 0.78rem;
+  font-size: 0.75rem;
+  font-weight: 500;
 }
 
 .progress-bar-top {
   border-radius: 0 0 var(--radius-md) var(--radius-md);
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 /* ─── Main Layout ────────────────────────────────────────────────── */
@@ -488,7 +501,7 @@ body.has-bg-image>* {
   }
 
   .app-header h1 {
-    font-size: 2rem;
+    font-size: 1.6rem;
   }
 
   .main-layout {
