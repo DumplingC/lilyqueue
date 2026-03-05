@@ -1870,18 +1870,17 @@ select.form-input option {
 
 .emoji-picker {
   display: none;
-  flex-wrap: wrap;
-  gap: 4px;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 2px;
   padding: 10px;
-  border-top: 1px solid var(--border-color);
+  border: 1px solid var(--border-color);
   background: var(--bg-card);
-  max-height: 120px;
-  overflow-y: auto;
-  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
 }
 
 .emoji-picker.open {
-  display: flex;
+  display: grid;
 }
 
 .emoji-item {
