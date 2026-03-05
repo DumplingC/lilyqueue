@@ -193,7 +193,7 @@
         socket.on('chat:message', (msg) => {
             addAdminChatMessage(msg);
             // Play notification sound when window is not focused and message is not from admin
-            if (document.hidden && msg.sender !== 'admin') {
+            if (document.hidden && !msg.isAdmin) {
                 playNotifSound();
             }
         });
